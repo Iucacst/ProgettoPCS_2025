@@ -6,24 +6,32 @@
 using namespace std;
 using namespace Eigen;
 
-namespace PolygonalLibrary {
+namespace GeodeticLibrary {
 	
-	struct PolygonalMesh {
-		unsigned int NumCell0Ds = 0; 
-		vector<unsigned int> Cell0DsId = {}; 
-		MatrixXd Cell0DsCoordinates = {}; 
-		map<unsigned int, list<unsigned int>> MarkerCell0Ds = {}; 
+	struct GeodeticSolid {
+		unsigned int NumCell0D = 0; 
+		vector<unsigned int> Cell0DId = {}; 
+		MatrixXd Cell0DCoordinates = {}; 
 
-		unsigned int NumCell1Ds = 0; 
-		vector<unsigned int> Cell1DsId = {}; 
-		MatrixXi Cell1DsExtrema = {};
-		map<unsigned int, list<unsigned int>> MarkerCell1Ds = {}; 
+		unsigned int NumCell1D = 0; 
+		vector<unsigned int> Cell1DId = {}; 
+		MatrixXi Cell1DExtrema = {};
 
-		unsigned int NumCell2Ds = 0; 
-		vector<unsigned int> Cell2DsId = {}; 
-		vector<vector<unsigned int>> Cell2DsVertices = {}; 
-		vector<vector<unsigned int>> Cell2DsEdges = {}; 
-		map<unsigned int, list<unsigned int>> MarkerCell2Ds = {};
+		unsigned int NumCell2D = 0; 
+		vector<unsigned int> Cell2DId = {}; 
+		vector<unsigned int> Cell2DNumVertices = {};
+		vector<unsigned int> Cell2DNumEdges = {};
+		vector<vector<unsigned int>> Cell2DVertices = {}; 
+		vector<vector<unsigned int>> Cell2DEdges = {}; 
+		
+		unsigned int NumCell3D = 0;
+		vector<unsigned int> Cell3DId = {};
+		vector<unsigned int> Cell3DNumVertices = {};
+		vector<unsigned int> Cell3DNumEdges = {};
+		vector<unsigned int> Cell3DNumFaces = {};
+		vector<vector<unsigned int>> Cell3DVertices = {}; 
+		vector<vector<unsigned int>> Cell3DEdges = {};
+		vector<vector<unsigned int>> Cell3DFaces = {};
 	};
 }
 
