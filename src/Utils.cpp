@@ -3,8 +3,83 @@
 #include <fstream>
 #include <sstream>
 
-namespace PolygonalLibrary
+namespace GeodeticLibrary
 {
+
+void build_polygon_class_1(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
+{
+    GeodeticSolid solid;
+
+    if((b == 0 && c == 0 || b != 0 && c != 0) && p != 3)
+    {
+        cerr << "Il poligono non appartiene alla classe 1." << endl;
+    }
+
+    if (q != {3,4,5})
+    {
+        cerr << "Non è possibile processare il poliedro" << endl;
+    }
+
+    if (b == 0)
+    {
+        b = c;
+        c = 0;
+    }
+    // TETRAEDRON
+    if (q == 3) 
+    {
+        solid.NumCell0D = 4;
+        solid.NumCell1D = 6;
+        solid.NumCell2D = 4;
+        solid.NumCell3D = 1;
+
+        solid.Cell0DId.reserve(solid.NumCell0D);
+        solid.Cell0DCoordinates = Eigen::MatrixXd::Zero(4, solid.NumCell0D);
+
+        Eigen::Matrix<double, 4, 3> vertices;
+        vertices <<  1,  1,  1,
+                    -1, -1,  1,
+                    -1,  1, -1,
+                     1, -1, -1;
+
+        for (int i = 0; i < solid.NumCell0D; ++i)
+        {
+            solid.Cell0DId.push_back(i);
+            solid.Cell0DCoordinates(i, 0) = solid.Cell0DId[i];
+            for (int j = 0; j < 3; ++j)
+            {
+                solid.Cell0DCoordinates(i, j + 1) = vertices(i, j)/sqrt(3);
+            }
+        }
+        for (int i = 0; i < solid.NumCell1D; ++i)
+        {
+            solid.Cell1DId.push_back(i);
+        }
+        for (int i = 0; i < solid.NumCell2D; ++i)
+        {
+            solid.Cell2DId.push_back(i);
+        }
+
+        solid.Cell1DExtrema.resize(2, 3);
+        solid.Cell2DVertices.resize(1);
+        solid.Cell2DEdges.resize(1);
+
+        // Set coordinates and edges
+    }
+    else
+    
+    
+    
+}
+
+// ***************************************************************************
+// ***************************************************************************
+// ***************************************************************************
+// ***************************************************************************
+// ***************************************************************************
+// ***************************************************************************
+
+
 bool ImportMesh(PolygonalMesh& mesh)
 {
 

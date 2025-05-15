@@ -25,7 +25,7 @@ namespace GeodeticLibrary {
 		vector<vector<unsigned int>> Cell2DEdges = {}; 
 		
 		unsigned int NumCell3D = 0;
-		vector<unsigned int> Cell3DId = {};
+		unsigned int Cell3DId = 0;
 		vector<unsigned int> Cell3DNumVertices = {};
 		vector<unsigned int> Cell3DNumEdges = {};
 		vector<unsigned int> Cell3DNumFaces = {};
