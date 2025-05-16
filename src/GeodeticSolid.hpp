@@ -12,7 +12,8 @@ namespace GeodeticLibrary {
 		unsigned int NumCell0D = 0; 
 		vector<unsigned int> Cell0DId = {}; 
 		MatrixXd Cell0DCoordinates = {}; 
-
+		map<unsigned int, list <unsigned int>> MarkerCell0Ds = {};
+		
 		unsigned int NumCell1D = 0; 
 		vector<unsigned int> Cell1DId = {}; 
 		MatrixXi Cell1DExtrema = {};
