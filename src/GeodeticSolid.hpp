@@ -24,14 +24,14 @@ namespace GeodeticLibrary {
 		vector<vector<unsigned int>> Cell2DVertices = {}; 
 		vector<vector<unsigned int>> Cell2DEdges = {}; 
 		
-		unsigned int NumCell3D = 0;
+		unsigned int NumCell3D = 1;
 		unsigned int Cell3DId = 0;
-		vector<unsigned int> Cell3DNumVertices = {};
-		vector<unsigned int> Cell3DNumEdges = {};
-		vector<unsigned int> Cell3DNumFaces = {};
-		vector<vector<unsigned int>> Cell3DVertices = {}; 
-		vector<vector<unsigned int>> Cell3DEdges = {};
-		vector<vector<unsigned int>> Cell3DFaces = {};
+		unsigned int Cell3DNumVertices = {};
+		unsigned int Cell3DNumEdges = {};
+		unsigned int Cell3DNumFaces = {};
+		vector<unsigned int> Cell3DVertices = {}; 
+		vector<unsigned int> Cell3DEdges = {};
+		vector<unsigned int> Cell3DFaces = {};
 	};
 }
 

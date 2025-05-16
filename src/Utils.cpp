@@ -15,7 +15,10 @@ void build_polygon_class_1(unsigned int p, unsigned int q, unsigned int b, unsig
         cerr << "Il poligono non appartiene alla classe 1." << endl;
     }
 
-    if (q != {3,4,5})
+    if (q > 5 || q < 3)
+    {
+        cerr << "Il poligro non appartiene alla classe 1." << endl;
+    }
     {
         cerr << "Non è possibile processare il poliedro" << endl;
     }
@@ -25,50 +28,98 @@ void build_polygon_class_1(unsigned int p, unsigned int q, unsigned int b, unsig
         b = c;
         c = 0;
     }
-    // TETRAEDRON
+    
     if (q == 3) 
     {
-        solid.NumCell0D = 4;
-        solid.NumCell1D = 6;
-        solid.NumCell2D = 4;
-        solid.NumCell3D = 1;
-
-        solid.Cell0DId.reserve(solid.NumCell0D);
-        solid.Cell0DCoordinates = Eigen::MatrixXd::Zero(4, solid.NumCell0D);
-
-        Eigen::Matrix<double, 4, 3> vertices;
-        vertices <<  1,  1,  1,
-                    -1, -1,  1,
-                    -1,  1, -1,
-                     1, -1, -1;
-
-        for (int i = 0; i < solid.NumCell0D; ++i)
-        {
-            solid.Cell0DId.push_back(i);
-            solid.Cell0DCoordinates(i, 0) = solid.Cell0DId[i];
-            for (int j = 0; j < 3; ++j)
-            {
-                solid.Cell0DCoordinates(i, j + 1) = vertices(i, j)/sqrt(3);
-            }
-        }
-        for (int i = 0; i < solid.NumCell1D; ++i)
-        {
-            solid.Cell1DId.push_back(i);
-        }
-        for (int i = 0; i < solid.NumCell2D; ++i)
-        {
-            solid.Cell2DId.push_back(i);
-        }
-
-        solid.Cell1DExtrema.resize(2, 3);
-        solid.Cell2DVertices.resize(1);
-        solid.Cell2DEdges.resize(1);
-
-        // Set coordinates and edges
+        solid = build_tetrahedron();
     }
-    else
+    else{}   
+}
+
+GeodeticSolid build_tetrahedron()
+{
     
+    GeodeticSolid solid;
     
+    solid.NumCell0D = 4;
+    solid.NumCell1D = 6;
+    solid.NumCell2D = 4;
+
+    solid.Cell0DId.resize(solid.NumCell0D);
+    solid.Cell0DCoordinates = Eigen::MatrixXd::Zero(4, solid.NumCell0D);
+    solid.Cell1DExtrema = Eigen::MatrixXi::Zero(3, solid.NumCell1D);
+
+    solid.Cell2DVertices.resize(4);
+    solid.Cell2DEdges.resize(4);
+
+    Eigen::Matrix<double, 4, 3> vertices;
+    vertices <<  1,  1,  1,
+                -1, -1,  1,
+                -1,  1, -1,
+                 1, -1, -1;
+
+    for (int i = 0; i < solid.NumCell0D; ++i)
+    {
+        solid.Cell0DId.push_back(i);
+        solid.Cell0DCoordinates(i, 0) = solid.Cell0DId[i];
+        for (int j = 0; j < 3; ++j)
+        {
+            solid.Cell0DCoordinates(i, j + 1) = vertices(i, j)/sqrt(3);
+        }
+    }
+    for (int i = 0; i < solid.NumCell1D; ++i)
+    {
+        solid.Cell1DId.push_back(i);
+        solid.Cell1DExtrema(i, 0) = solid.Cell1DId[i];
+        
+        for (int j = i+1; j <= 3; ++j)
+        {
+            solid.Cell1DExtrema(j + i - 1, 1) = solid.Cell0DId[i];
+            solid.Cell1DExtrema(j + i - 1, 2) = solid.Cell0DId[j];
+        }
+    }
+    for (int i = 0; i < solid.NumCell2D; ++i)
+    {
+        int v = 0;
+
+        solid.Cell2DId.push_back(i);
+        solid.Cell2DNumVertices.push_back(3);
+        solid.Cell2DNumEdges.push_back(3);
+        
+        solid.Cell2DEdges[i].push_back(i);
+        solid.Cell2DVertices[i].push_back(i);
+
+        for (int j = 0; j < 3; ++j)
+        {
+            v = (j + 2) % 4;
+            solid.Cell2DVertices[i].push_back(v);
+        }
+    }
+
+    solid.Cell2DEdges[0].push_back(5); // Faccia 2,3,0
+    solid.Cell2DEdges[0].push_back(2);
+    solid.Cell2DEdges[0].push_back(1);
+
+    solid.Cell2DEdges[1].push_back(2);  // Faccia 3,0,1
+    solid.Cell2DEdges[1].push_back(0);
+    solid.Cell2DEdges[1].push_back(4);
+
+    solid.Cell2DEdges[2].push_back(0);  // Faccia 0,1,2
+    solid.Cell2DEdges[2].push_back(3);
+    solid.Cell2DEdges[2].push_back(1);
+
+    solid.Cell2DEdges[3].push_back(3);  // Faccia 1,2,3
+    solid.Cell2DEdges[3].push_back(5);
+    solid.Cell2DEdges[3].push_back(4);
+
+    //Solido 3D
+
+    solid.Cell3DNumVertices = 4;
+    solid.Cell3DNumEdges = 6;
+    solid.Cell3DNumFaces = 4;
+    
+    return solid;
+}
     
 }
 
@@ -79,7 +130,7 @@ void build_polygon_class_1(unsigned int p, unsigned int q, unsigned int b, unsig
 // ***************************************************************************
 // ***************************************************************************
 
-
+/*
 bool ImportMesh(PolygonalMesh& mesh)
 {
 
@@ -210,7 +261,7 @@ bool ImportCell1Ds(PolygonalMesh& mesh)
 		mesh.Cell1DsExtrema(0, id) = stoi(field_values[2]);
 		mesh.Cell1DsExtrema(1, id) = stoi(field_values[3]);
         /*converter >> id >> marker >>  mesh.Cell1DsExtrema(0, id) >>  mesh.Cell1DsExtrema(1, id);
-		cout << marker;*/
+		cout << marker;
         mesh.Cell1DsId.push_back(id);
 
         /// Memorizza i marker
@@ -314,7 +365,7 @@ bool edges_test(PolygonalMesh& mesh)
 	for(unsigned int i = 0; i<mesh.NumCell2Ds; i++)
 	{
         /*con questi for, prendo ogni poligono (i), e per ogni poligono prendo ogni vertice esistente 
-        appartenente al poligono (j)*/
+        appartenente al poligono (j)
 		for(unsigned int j = 0; j<mesh.Cell2DsEdges[i].size();j++)
 		{	
 			
@@ -356,7 +407,7 @@ bool areas_test(PolygonalMesh& mesh)
 		{
 			/*per far sì che la formula per il calcolo dell'area sia funzionante, l'ultimo vertice deve 
             chiudersi con il primo e per fare ciò utilizzo le operazioni algebriche modulo n, in modo 
-            tale che raggiunto l'inidce n, l'indice j ritorni direttamente a 0*/
+            tale che raggiunto l'inidce n, l'indice j ritorni direttamente a 0
 			unsigned int& P1_id = mesh.Cell2DsVertices[i][j];
 			unsigned int& P2_id = mesh.Cell2DsVertices[i][(j+1)%n];
 			
@@ -379,4 +430,4 @@ bool areas_test(PolygonalMesh& mesh)
 	cout<<"Non ci sono poligoni che hanno area pari a 0."<<endl;
 	return true;
 }
-}
+}*/
