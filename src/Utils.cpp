@@ -46,8 +46,8 @@ GeodeticSolid build_tetrahedron()
     solid.NumCell2D = 4;
 
     solid.Cell0DId.reserve(solid.NumCell0D);
-    solid.Cell0DCoordinates = Eigen::MatrixXd::Zero(solid.NumCell0D, 4);
-    solid.Cell1DExtrema = Eigen::MatrixXi::Zero(solid.NumCell1D, 2);
+    solid.Cell0DCoordinates = Eigen::MatrixXd::Zero(3, solid.NumCell0D);
+    solid.Cell1DExtrema = Eigen::MatrixXi::Zero(2, solid.NumCell1D);
 
     solid.Cell2DVertices.reserve(4);
     solid.Cell2DEdges.reserve(4);
@@ -61,10 +61,10 @@ GeodeticSolid build_tetrahedron()
     for (int i = 0; i < solid.NumCell0D; ++i)
     {
         solid.Cell0DId.push_back(i);
-        solid.Cell0DCoordinates(i, 0) = solid.Cell0DId[i];
+
         for (int j = 0; j < 3; ++j)
         {
-            solid.Cell0DCoordinates(i, j + 1) = vertices(i, j)/sqrt(3);
+            solid.Cell0DCoordinates(j, i) = vertices(i, j)/sqrt(3);
         }
     }
 
@@ -76,8 +76,8 @@ GeodeticSolid build_tetrahedron()
         
         for (int j = i+1; j <= 3; ++j)
         {
-            solid.Cell1DExtrema(ctr, 0) = solid.Cell0DId[i];
-            solid.Cell1DExtrema(ctr, 1) = solid.Cell0DId[j];
+            solid.Cell1DExtrema(0, ctr) = solid.Cell0DId[i];
+            solid.Cell1DExtrema(1, ctr) = solid.Cell0DId[j];
             ctr++;
         }
     }

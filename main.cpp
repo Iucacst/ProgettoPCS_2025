@@ -14,16 +14,33 @@ int main()
     mesh = build_tetrahedron();
 
     for (int x : mesh.Cell0DId) {
-        std::cout << x << " " << endl;
+        std::cout << x << " " ;
     }
+
+    cout << endl;
 
     for (int x : mesh.Cell1DId) {
-        std::cout << x << " " << endl;
+        std::cout << x << " " ;
     }
 
-    cout << mesh.Cell1DExtrema << endl;
+    cout << endl;
 
+    for (int x : mesh.Cell2DId) {
+        std::cout << x << " " ;
+    }
+    
+    cout << endl;
+    cout << mesh.Cell1DExtrema << endl;
     cout << mesh.Cell0DCoordinates << endl;
+
+    //Stampami mesh.Cell2DEdges
+    for (int i = 0; i < mesh.NumCell2D; ++i) {
+        cout << "Cell2DEdges[" << i << "] : ";
+        for (int j = 0; j < mesh.Cell2DEdges[i].size(); ++j) {
+            cout << mesh.Cell2DEdges[i][j] << " ";
+        }
+        cout << endl;
+    }
 
     Gedim::UCDUtilities utilities;
     {
