@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cmath>
 
 namespace GeodeticLibrary
 {
@@ -124,8 +125,27 @@ GeodeticSolid build_tetrahedron()
     return solid;
 }
     
-}
 
+
+void unit_sphere_projection(double& x, double& y, double& z)
+{
+	double norm = sqrt(x*x + y*y + z*z);
+	
+	if (norm == 0)
+	{
+		cerr << "Cannot project (0, 0, 0) onto the unit sphere" << endl;
+		return;
+	}
+	
+	x /= norm;
+	y /= norm;
+	z /= norm;
+	
+	return;
+}
+	
+	
+}
 // ***************************************************************************
 // ***************************************************************************
 // ***************************************************************************
