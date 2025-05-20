@@ -262,8 +262,6 @@ GeodeticSolid build_octahedron()
 
     return solid;
 }
-    
-
 
 void unit_sphere_projection(double& x, double& y, double& z)
 {
