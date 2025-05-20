@@ -11,7 +11,13 @@ int main()
 {
     GeodeticSolid mesh;
 
-    mesh = build_octahedron();
+    mesh = build_tetrahedron();
+
+    for (int x : mesh.Cell0DId) {
+        std::cout << x << " " ;
+    }
+
+    cout << endl;
 
     for (int x : mesh.Cell1DId) {
         std::cout << x << " " ;
@@ -56,5 +62,7 @@ int main()
                                  mesh.Cell1DExtrema,
                                  {});
     }
+	
+	
     return 0;
 }
