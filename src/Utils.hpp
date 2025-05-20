@@ -12,9 +12,6 @@ namespace GeodeticLibrary
 	GeodeticSolid build_tetrahedron();
 	GeodeticSolid build_octahedron();
 	
-	
-	void unit_sphere_projection(double& x, double& y, double& z);
-
 	/*bool ImportMesh(PolygonalMesh& mesh);
 	bool ImportCell0Ds(PolygonalMesh& mesh);
 	bool ImportCell1Ds(PolygonalMesh& mesh);

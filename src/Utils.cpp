@@ -47,11 +47,17 @@ GeodeticSolid build_tetrahedron()
     solid.NumCell2D = 4;
 
     solid.Cell0DId.reserve(solid.NumCell0D);
+    solid.Cell1DId.reserve(solid.NumCell1D);
+    solid.Cell2DId.reserve(solid.NumCell2D);
+
     solid.Cell0DCoordinates = Eigen::MatrixXd::Zero(3, solid.NumCell0D);
     solid.Cell1DExtrema = Eigen::MatrixXi::Zero(2, solid.NumCell1D);
 
-    solid.Cell2DVertices.reserve(4);
-    solid.Cell2DEdges.reserve(4);
+    solid.Cell2DNumVertices.reserve(solid.NumCell2D);
+    solid.Cell2DNumEdges.reserve(solid.NumCell2D);
+
+    solid.Cell2DVertices.reserve(solid.NumCell2D);
+    solid.Cell2DEdges.reserve(solid.NumCell2D);
 
     Eigen::Matrix<double, 4, 3> vertices;
     vertices <<  1.0,  1.0,  1.0,
@@ -59,7 +65,7 @@ GeodeticSolid build_tetrahedron()
                 -1.0,  1.0, -1.0,
                  1.0, -1.0, -1.0;
 
-    for (int i = 0; i < solid.NumCell0D; ++i)
+    for (unsigned int i = 0; i < solid.NumCell0D; ++i)
     {
         solid.Cell0DId.push_back(i);
 
@@ -70,7 +76,7 @@ GeodeticSolid build_tetrahedron()
     }
 
     int ctr = 0;
-    for (int i = 0; i < solid.NumCell1D; ++i)
+    for (unsigned int i = 0; i < solid.NumCell1D; ++i)
     {
         solid.Cell1DId.push_back(i);
         //solid.Cell1DExtrema(i, 0) = solid.Cell1DId[i];
@@ -82,7 +88,7 @@ GeodeticSolid build_tetrahedron()
             ctr++;
         }
     }
-    for (int i = 0; i < solid.NumCell2D; ++i)
+    for (unsigned int i = 0; i < solid.NumCell2D; ++i)
     {
         int v = 0;
 
@@ -95,7 +101,7 @@ GeodeticSolid build_tetrahedron()
 
         for (int j = 0; j < 3; ++j)
         {
-            v = (j + 2) % 4;
+            v = (j + i + 2) % 4;
             solid.Cell2DVertices[i].push_back(v);
         }
     }
@@ -124,8 +130,138 @@ GeodeticSolid build_tetrahedron()
 
     return solid;
 }
-    
 
+GeodeticSolid build_octahedron()
+{
+    GeodeticSolid solid;
+
+    solid.NumCell0D = 6;
+    solid.NumCell1D = 12;
+    solid.NumCell2D = 8;
+
+    solid.Cell0DId.reserve(solid.NumCell0D);
+    solid.Cell1DId.resize(solid.NumCell1D);
+    solid.Cell2DId.reserve(solid.NumCell2D);
+    
+    solid.Cell0DCoordinates = Eigen::MatrixXd::Zero(3, solid.NumCell0D);
+    solid.Cell1DExtrema = Eigen::MatrixXi::Zero(2, solid.NumCell1D);
+
+    solid.Cell2DVertices.reserve(solid.NumCell2D);
+    solid.Cell2DEdges.reserve(solid.NumCell2D);
+
+    Eigen::Matrix<double, 6, 3> vertices;
+    vertices << 0.0,  0.0,  1.0,
+                0.0,  0.0, -1.0,
+                1.0,  0.0,  0.0,
+                0.0,  1.0,  0.0,
+               -1.0,  0.0,  0.0,
+                0.0, -1.0,  0.0;
+                
+
+    for (unsigned int i = 0; i < solid.NumCell0D; ++i)
+    {
+        solid.Cell0DId.push_back(i);
+            
+        for (int j = 0; j < 3; ++j)
+        {
+            solid.Cell0DCoordinates(j, i) = vertices(i, j);
+        }
+    }
+
+    //Spigoli del poliedro
+
+    int ctr = 0;
+  
+    for (int j = 2; j <= 5; ++j) // ciclo for per riempire tutti gli spigoli uscenti dai poli (8 spigoli su 12)
+    {
+        solid.Cell1DId[ctr] = ctr;
+        solid.Cell1DExtrema(0, ctr) = solid.Cell0DId[0]; 
+        solid.Cell1DExtrema(1, ctr) = solid.Cell0DId[j];
+
+        solid.Cell1DId[ctr + 4] = ctr + 4;
+        solid.Cell1DExtrema(0, ctr + 4) = solid.Cell0DId[1];
+        solid.Cell1DExtrema(1, ctr + 4) = solid.Cell0DId[j];
+        ctr++;
+    }
+
+    ctr += 4;
+
+    for (int j = 2; j < 5; ++j) // ciclo for per riempire gli spigoli che uniscono i vertici sul piano xy (4 spigoli su 12)
+    {
+        solid.Cell1DId[ctr] = ctr;
+        solid.Cell1DExtrema(0, ctr) = solid.Cell0DId[j];
+        solid.Cell1DExtrema(1, ctr) = solid.Cell0DId[j + 1];
+        ctr++;            
+    }
+    
+    solid.Cell1DId[ctr] = ctr;
+    solid.Cell1DExtrema(0, ctr) = solid.Cell0DId[5];
+    solid.Cell1DExtrema(1, ctr) = solid.Cell0DId[2];
+    
+    //Facce del poliedro
+    ctr = 0;
+
+    for (int j = 0; j < 2; ++j)
+    {
+        for (int k = 2; k <= 4; ++k)
+        {
+            solid.Cell2DId.push_back(ctr);
+            solid.Cell2DNumVertices.push_back(3);
+            solid.Cell2DNumEdges.push_back(3);
+                
+            solid.Cell2DVertices[ctr].push_back(ctr);
+            solid.Cell2DVertices[ctr].push_back(j);
+            solid.Cell2DVertices[ctr].push_back(k);
+            solid.Cell2DVertices[ctr].push_back(k+1);
+            ctr++;
+            if(k + 1 == 5)
+            {
+                solid.Cell2DId.push_back(ctr);
+                solid.Cell2DNumVertices.push_back(3);
+                solid.Cell2DNumEdges.push_back(3);
+                    
+                solid.Cell2DVertices[ctr].push_back(ctr);
+                solid.Cell2DVertices[ctr].push_back(j);
+                solid.Cell2DVertices[ctr].push_back(k+1);
+                solid.Cell2DVertices[ctr].push_back(2);
+                ctr++;
+            }
+            
+        }
+    }
+
+    //Spigoli Celle 2D
+
+    for(int i = 0; i < solid.NumCell2D; ++i)
+    {
+        solid.Cell2DEdges[i].push_back(i); // questi sono gli indici dei vertici e degli spigoli di ogni faccia
+        solid.Cell2DEdges[i].push_back(i); // sembra uguale alla riga prima, ma nel modo in cui ho ordinato gli spigoli tutte le facce hanno come primo spigolo lo spigolo di indice i
+
+        int v = 8 + (i % 4);
+        solid.Cell2DEdges[i].push_back(v);
+
+        int u = (i + 1) % 4;
+
+        if (i + 1 == 4)
+        {
+            solid.Cell2DEdges[i].push_back(0);
+        }
+        else if(i + 1 == 8)
+        {
+            solid.Cell2DEdges[i].push_back(4);
+        }
+        else if(i >= 0 && i < 3)
+        {
+            solid.Cell2DEdges[i].push_back(u); 
+        }
+        else if(i >= 4 && i < 7)
+        {
+            solid.Cell2DEdges[i].push_back(u + 4); 
+        }
+    }
+
+    return solid;
+}
 
 void unit_sphere_projection(double& x, double& y, double& z)
 {
