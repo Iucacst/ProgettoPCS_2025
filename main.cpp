@@ -11,9 +11,9 @@ int main()
 {
     GeodeticSolid mesh;
 
-    mesh = build_icosahedron();
-    //triangulation_c1(3, 3, mesh);
-
+    mesh = build_tetrahedron();
+    triangulation_c1(3, 3, mesh);
+    
     Gedim::UCDUtilities utilities;
     {
         vector<Gedim::UCDProperty<double>> cell0Ds_properties(1);
