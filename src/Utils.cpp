@@ -10,55 +10,53 @@ using std::vector;
 namespace GeodeticLibrary
 {
 
-void build_polygon_class_1(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
+void fill_Cell3D(GeodeticSolid& solid)
 {
-    GeodeticSolid solid;
+    solid.Cell3DNumVertices = solid.NumCell0D;
+    solid.Cell3DNumEdges = solid.NumCell1D;
+    solid.Cell3DNumFaces = solid.NumCell2D;
 
-    if((b == 0 && c == 0 || b != 0 && c != 0) && p != 3)
+    solid.Cell3DVertices.resize(solid.NumCell0D);
+    solid.Cell3DEdges.resize(solid.NumCell1D);
+    solid.Cell3DFaces.resize(solid.NumCell2D);
+
+    for (unsigned int i = 0; i < solid.NumCell0D; ++i)
     {
-        cerr << "Polyhedron does not belong to class 1." << endl;
+        solid.Cell3DVertices[i] = i;
     }
 
-    if (q > 5 || q < 3)
+    for (unsigned int i = 0; i < solid.NumCell1D; ++i)
     {
-        cerr << "Polyhedron does not belong to class 1." << endl;
+        solid.Cell3DEdges[i] = i;
     }
 
-    if (b == 0)
+    for (unsigned int i = 0; i < solid.NumCell2D; ++i)
     {
-        b = c;
-        c = 0;
+        solid.Cell3DFaces[i] = i;
     }
-    
-    if (q == 3) 
-    {
-        solid = build_tetrahedron();
-    }
-    else{}   
 }
 
 GeodeticSolid build_tetrahedron()
 {
-    
     GeodeticSolid solid;
     
+    //Size
     solid.NumCell0D = 4;
-    solid.NumCell1D = 6;
-    solid.NumCell2D = 4;
-
-    solid.Cell0DId.reserve(solid.NumCell0D);
-    solid.Cell1DId.reserve(solid.NumCell1D);
-    solid.Cell2DId.reserve(solid.NumCell2D);
-
+    solid.Cell0DId.resize(solid.NumCell0D);
     solid.Cell0DCoordinates = Eigen::MatrixXd::Zero(3, solid.NumCell0D);
+
+    solid.NumCell1D = 6;
+    solid.Cell1DId.resize(solid.NumCell1D);
     solid.Cell1DExtrema = Eigen::MatrixXi::Zero(2, solid.NumCell1D);
 
-    solid.Cell2DVertices.reserve(solid.NumCell2D);
-    solid.Cell2DEdges.reserve(solid.NumCell2D);
+    solid.NumCell2D = 4;
+    solid.Cell2DId.resize(solid.NumCell2D);
+    solid.Cell2DNumVertices.resize(solid.NumCell2D);
+    solid.Cell2DNumEdges.resize(solid.NumCell2D);
+    solid.Cell2DVertices.resize(solid.NumCell2D);
+    solid.Cell2DEdges.resize(solid.NumCell2D);
 
-    solid.Cell2DVertices.reserve(solid.NumCell2D);
-    solid.Cell2DEdges.reserve(solid.NumCell2D);
-
+    //Cell0D
     Eigen::Matrix<double, 4, 3> vertices;
     vertices <<  1.0,  1.0,  1.0,
                 -1.0, -1.0,  1.0,
@@ -67,19 +65,22 @@ GeodeticSolid build_tetrahedron()
 
     for (unsigned int i = 0; i < solid.NumCell0D; ++i)
     {
-        solid.Cell0DId.push_back(i);
-
-        for (int j = 0; j < 3; ++j)
+        for (unsigned int i = 0; i < solid.NumCell0D; ++i)
+	    {
+            unit_sphere_projection(vertices(i, 0), vertices(i, 1), vertices(i, 2));
+        }
+        solid.Cell0DId[i] = i;
+        for (unsigned int j = 0; j < 3; ++j)
         {
-            solid.Cell0DCoordinates(j, i) = vertices(i, j)/sqrt(3);
+            solid.Cell0DCoordinates(j, i) = vertices(i, j);
         }
     }
 
-    int ctr = 0;
+    //Cell1D
+    unsigned int ctr = 0;
     for (unsigned int i = 0; i < solid.NumCell1D; ++i)
     {
-        solid.Cell1DId.push_back(i);
-        //solid.Cell1DExtrema(i, 0) = solid.Cell1DId[i];
+        solid.Cell1DId[i] = i;
         
         for (int j = i+1; j <= 3; ++j)
         {
@@ -88,16 +89,15 @@ GeodeticSolid build_tetrahedron()
             ctr++;
         }
     }
+
+    //Cell2D
     for (unsigned int i = 0; i < solid.NumCell2D; ++i)
     {
         int v = 0;
 
-        solid.Cell2DId.push_back(i);
-        solid.Cell2DNumVertices.push_back(3);
-        solid.Cell2DNumEdges.push_back(3);
-        
-        solid.Cell2DEdges[i].push_back(i);
-        solid.Cell2DVertices[i].push_back(i);
+        solid.Cell2DId[i] = i;
+        solid.Cell2DNumVertices[i] = 3;
+        solid.Cell2DNumEdges[i] = 3;
 
         for (int j = 0; j < 3; ++j)
         {
@@ -122,11 +122,8 @@ GeodeticSolid build_tetrahedron()
     solid.Cell2DEdges[3].push_back(5);
     solid.Cell2DEdges[3].push_back(4);
 
-    //Solido 3D
-
-    solid.Cell3DNumVertices = 4;
-    solid.Cell3DNumEdges = 6;
-    solid.Cell3DNumFaces = 4;
+    //Cell3D
+    fill_Cell3D(solid);
 
     return solid;
 }
@@ -135,20 +132,23 @@ GeodeticSolid build_octahedron()
 {
     GeodeticSolid solid;
 
+    //Size
     solid.NumCell0D = 6;
-    solid.NumCell1D = 12;
-    solid.NumCell2D = 8;
-
-    solid.Cell0DId.reserve(solid.NumCell0D);
-    solid.Cell1DId.resize(solid.NumCell1D);
-    solid.Cell2DId.reserve(solid.NumCell2D);
-    
+    solid.Cell0DId.resize(solid.NumCell0D);
     solid.Cell0DCoordinates = Eigen::MatrixXd::Zero(3, solid.NumCell0D);
+    
+    solid.NumCell1D = 12;
+    solid.Cell1DId.resize(solid.NumCell1D);
     solid.Cell1DExtrema = Eigen::MatrixXi::Zero(2, solid.NumCell1D);
 
+    solid.NumCell2D = 8;
+    solid.Cell2DId.resize(solid.NumCell2D);
+    solid.Cell2DNumVertices.resize(solid.NumCell2D);
+    solid.Cell2DNumEdges.resize(solid.NumCell2D);
     solid.Cell2DVertices.reserve(solid.NumCell2D);
     solid.Cell2DEdges.reserve(solid.NumCell2D);
 
+    //Cell0D
     Eigen::Matrix<double, 6, 3> vertices;
     vertices << 0.0,  0.0,  1.0,
                 0.0,  0.0, -1.0,
@@ -156,11 +156,9 @@ GeodeticSolid build_octahedron()
                 0.0,  1.0,  0.0,
                -1.0,  0.0,  0.0,
                 0.0, -1.0,  0.0;
-                
-
     for (unsigned int i = 0; i < solid.NumCell0D; ++i)
     {
-        solid.Cell0DId.push_back(i);
+        solid.Cell0DId[i] = i;
             
         for (int j = 0; j < 3; ++j)
         {
@@ -168,11 +166,10 @@ GeodeticSolid build_octahedron()
         }
     }
 
-    //Spigoli del poliedro
-
+    //Cell1D
     int ctr = 0;
   
-    for (int j = 2; j <= 5; ++j) // ciclo for per riempire tutti gli spigoli uscenti dai poli (8 spigoli su 12)
+    for (unsigned int j = 2; j <= 5; ++j) // ciclo for per riempire tutti gli spigoli uscenti dai poli (8 spigoli su 12)
     {
         solid.Cell1DId[ctr] = ctr;
         solid.Cell1DExtrema(0, ctr) = solid.Cell0DId[0]; 
@@ -186,41 +183,42 @@ GeodeticSolid build_octahedron()
 
     ctr += 4;
 
-    for (int j = 2; j < 5; ++j) // ciclo for per riempire gli spigoli che uniscono i vertici sul piano xy (4 spigoli su 12)
+    for (unsigned int j = 2; j <= 5; ++j) // ciclo for per riempire gli spigoli che uniscono i vertici sul piano xy (4 spigoli su 12)
     {
         solid.Cell1DId[ctr] = ctr;
         solid.Cell1DExtrema(0, ctr) = solid.Cell0DId[j];
-        solid.Cell1DExtrema(1, ctr) = solid.Cell0DId[j + 1];
+        if (j == 5)
+        {
+            solid.Cell1DExtrema(1, ctr) = solid.Cell0DId[2];
+        }
+        else 
+        {
+            solid.Cell1DExtrema(1, ctr) = solid.Cell0DId[j + 1];
+        }
         ctr++;            
     }
     
-    solid.Cell1DId[ctr] = ctr;
-    solid.Cell1DExtrema(0, ctr) = solid.Cell0DId[5];
-    solid.Cell1DExtrema(1, ctr) = solid.Cell0DId[2];
-    
-    //Facce del poliedro
+    //Cell2D
     ctr = 0;
-
-    for (int j = 0; j < 2; ++j)
+    for (unsigned int j = 0; j < 2; ++j)
     {
-        for (int k = 2; k <= 4; ++k)
+        for (unsigned int k = 2; k <= 4; ++k)
         {
-            solid.Cell2DId.push_back(ctr);
-            solid.Cell2DNumVertices.push_back(3);
-            solid.Cell2DNumEdges.push_back(3);
-                
-            solid.Cell2DVertices[ctr].push_back(ctr);
+            solid.Cell2DId[ctr] = ctr;
+            solid.Cell2DNumVertices[ctr] = 3;
+            solid.Cell2DNumEdges[ctr] = 3;
+            
             solid.Cell2DVertices[ctr].push_back(j);
             solid.Cell2DVertices[ctr].push_back(k);
             solid.Cell2DVertices[ctr].push_back(k+1);
             ctr++;
+
             if(k + 1 == 5)
             {
-                solid.Cell2DId.push_back(ctr);
-                solid.Cell2DNumVertices.push_back(3);
-                solid.Cell2DNumEdges.push_back(3);
-                    
-                solid.Cell2DVertices[ctr].push_back(ctr);
+                solid.Cell2DId[ctr] = ctr;
+                solid.Cell2DNumVertices[ctr] = 3;
+                solid.Cell2DNumEdges[ctr] = 3;
+                
                 solid.Cell2DVertices[ctr].push_back(j);
                 solid.Cell2DVertices[ctr].push_back(k+1);
                 solid.Cell2DVertices[ctr].push_back(2);
@@ -230,9 +228,7 @@ GeodeticSolid build_octahedron()
         }
     }
 
-    //Spigoli Celle 2D
-
-    for(int i = 0; i < solid.NumCell2D; ++i)
+    for(unsigned int i = 0; i < solid.NumCell2D; ++i)
     {
         solid.Cell2DEdges[i].push_back(i); // questi sono gli indici dei vertici e degli spigoli di ogni faccia
         solid.Cell2DEdges[i].push_back(i); // sembra uguale alla riga prima, ma nel modo in cui ho ordinato gli spigoli tutte le facce hanno come primo spigolo lo spigolo di indice i
@@ -260,8 +256,159 @@ GeodeticSolid build_octahedron()
         }
     }
 
+    //Cell3D
+    fill_Cell3D(solid);
+
     return solid;
 }
+
+GeodeticSolid build_icosahedron()
+{
+    GeodeticSolid solid;
+    
+    solid.NumCell0D = 12;
+	solid.Cell0DId.resize(solid.NumCell0D);
+	solid.Cell0DCoordinates = Eigen::MatrixXd::Zero(3, solid.NumCell0D);
+
+    solid.NumCell1D = 30;
+	solid.Cell1DId.resize(solid.NumCell1D);
+	solid.Cell1DExtrema = Eigen::MatrixXi::Zero(2, solid.NumCell1D);
+
+    solid.NumCell2D = 20;
+	solid.Cell2DId.resize(solid.NumCell2D);
+    solid.Cell2DNumVertices.resize(solid.NumCell2D);
+	solid.Cell2DNumEdges.resize(solid.NumCell2D);
+    solid.Cell2DVertices.resize(solid.NumCell2D);
+    solid.Cell2DEdges.resize(solid.NumCell2D);
+
+	//Cell0D
+    Eigen::Matrix<double, 12, 3> vertices;
+	const double phi = (1.0 + std::sqrt(5.0)) / 2.0;
+    vertices << 
+		 0.0,  1.0,  phi,
+		   
+         0.0, -1.0,  phi,
+		 phi,  0.0,  1.0,
+		 1.0,  phi,  0.0,
+		-1.0,  phi,  0.0,
+		-phi,  0.0,  1.0,
+		  
+		 1.0, -phi,  0.0,
+		 phi,  0.0, -1.0,
+		 0.0,  1.0, -phi,
+		-phi,  0.0, -1.0,
+		-1.0, -phi,  0.0,
+		  
+         0.0, -1.0, -phi;
+
+	for (unsigned int i = 0; i < solid.NumCell0D; ++i)
+	{
+		unit_sphere_projection(vertices(i, 0), vertices(i, 1), vertices(i, 2));
+	}
+
+
+    for (unsigned int i = 0; i < solid.NumCell0D; ++i)
+    {
+        solid.Cell0DId[i] = i;
+
+        for (int j = 0; j < 3; ++j)
+        {
+            solid.Cell0DCoordinates(j, i) = vertices(i, j);
+        }
+    }
+
+	//Cell1D
+	for (unsigned int j = 0; j < 5; ++j)
+	{
+		solid.Cell1DId[j] = j;
+		solid.Cell1DExtrema(0, j) = solid.Cell0DId[0];
+		solid.Cell1DExtrema(1, j) = solid.Cell0DId[j + 1];
+		
+		solid.Cell1DId[j + 5] = j + 5;
+		solid.Cell1DExtrema(0, j + 5) = solid.Cell0DId[11];
+		solid.Cell1DExtrema(1, j + 5) = solid.Cell0DId[j + 6];
+
+		solid.Cell1DId[j+10] = j + 10;
+		solid.Cell1DExtrema(0, j + 10) = solid.Cell0DId[j + 1];
+		solid.Cell1DExtrema(1, j + 10) = solid.Cell0DId[(j + 1) % 5 + 1];
+
+		solid.Cell1DId[j + 15] = j + 15;
+		solid.Cell1DExtrema(0, j + 15) = solid.Cell0DId[j + 6];
+		solid.Cell1DExtrema(1, j + 15) = solid.Cell0DId[(j + 1) % 5 + 6];
+
+		solid.Cell1DId[j + 20] = j + 20;
+		solid.Cell1DExtrema(0, j + 20) = solid.Cell0DId[j + 1];
+		solid.Cell1DExtrema(1, j + 20) = solid.Cell0DId[j + 6];
+		
+		solid.Cell1DId[j + 25] = j + 25;
+           	if (j == 4)
+		{
+			solid.Cell1DExtrema(0, j + 25) = solid.Cell0DId[1];
+		}
+		else 
+		{
+			solid.Cell1DExtrema(0, j + 25) = solid.Cell0DId[j + 2];
+		}
+		solid.Cell1DExtrema(1, j + 25) = solid.Cell0DId[j + 6];
+	}
+
+
+	//Cell2D 
+    for (int i = 0; i < 5; ++i)
+    {
+        solid.Cell2DId[i] = i;
+        solid.Cell2DNumVertices[i] = 3;
+        solid.Cell2DNumEdges[i] = 3;
+		solid.Cell2DVertices[i].push_back(0);
+		solid.Cell2DVertices[i].push_back(i + 1);
+		solid.Cell2DVertices[i].push_back((i + 1) % 5 + 1);
+        solid.Cell2DEdges[i].push_back(i); // Faccia 0, i, i+1
+        solid.Cell2DEdges[i].push_back(i + 10);
+        solid.Cell2DEdges[i].push_back(i + 1);
+
+		solid.Cell2DId[i + 5] = i + 5;
+		solid.Cell2DNumVertices[i + 5] = 3;
+		solid.Cell2DNumEdges[i + 5] = 3;
+		solid.Cell2DVertices[i + 5].push_back(11);
+		solid.Cell2DVertices[i + 5].push_back(i + 6);
+		solid.Cell2DVertices[i + 5].push_back((i + 1) % 5 + 6);
+        solid.Cell2DEdges[i + 5].push_back(i + 5); // Faccia 11, i+6, i+7
+        solid.Cell2DEdges[i + 5].push_back(i + 15);
+        solid.Cell2DEdges[i + 5].push_back(i + 6);
+
+		solid.Cell2DId[i + 10] = i + 10;
+		solid.Cell2DNumVertices[i + 10] = 3;
+		solid.Cell2DNumEdges[i + 10] = 3;
+		solid.Cell2DVertices[i + 10].push_back(i + 1);
+		solid.Cell2DVertices[i + 10].push_back((i + 1) % 5 + 1);
+		solid.Cell2DVertices[i + 10].push_back((i + 6);
+        solid.Cell2DEdges[i + 10].push_back(i + 10); // Faccia i+1, i+2, i+6
+        solid.Cell2DEdges[i + 10].push_back(i + 25);
+        solid.Cell2DEdges[i + 10].push_back(i + 20);
+
+		solid.Cell2DId[i + 15] = i + 15;
+		solid.Cell2DNumVertices[i + 15] = 3;
+		solid.Cell2DNumEdges[i + 15] = 3;
+		solid.Cell2DVertices[i + 15].push_back(i + 6);
+		solid.Cell2DVertices[i + 15].push_back((i + 1) % 5 + 1;
+		if (i == 4)
+		{
+			solid.Cell2DVertices[i + 15].push_back(6);
+        }
+		else
+		{
+			solid.Cell2DVertices[i + 15].push_back(i + 7);
+		}
+        solid.Cell2DEdges[i + 15].push_back(i + 25); // Faccia i+6, i+2, i+7
+        solid.Cell2DEdges[i + 15].push_back((i + 1) % 5 + 20);
+        solid.Cell2DEdges[i + 15].push_back(i + 15);
+    }
+
+    //Cell3D
+    fill_Cell3D(solid);
+
+    return solid;
+} 
 
 void unit_sphere_projection(double& x, double& y, double& z)
 {
@@ -373,7 +520,7 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
         }
     }
 
-    if (b >= 3)
+    /* if (b >= 3)
     {
     for (unsigned int i = 0; i < solid.NumCell2D; ++i)
         {
@@ -408,9 +555,34 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
             }
         }
         return;
-    }
+    } */
 }
 
+void build_polygon_class_1(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
+{
+    GeodeticSolid solid;
 
+    if((b == 0 && c == 0 || b != 0 && c != 0) && p != 3)
+    {
+        cerr << "Polyhedron does not belong to class 1." << endl;
+    }
+
+    if (q > 5 || q < 3)
+    {
+        cerr << "Polyhedron does not belong to class 1." << endl;
+    }
+
+    if (b == 0)
+    {
+        b = c;
+        c = 0;
+    }
+    
+    if (q == 3) 
+    {
+        solid = build_tetrahedron();
+    }
+    else{}   
+}
 
 }// namespace GeodeticLibrary
