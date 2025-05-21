@@ -12,7 +12,19 @@ int main()
     GeodeticSolid mesh;
 
     mesh = build_tetrahedron();
+    // Print all Cell2DVertices
+    for (unsigned int i = 0; i < mesh.NumCell2D; ++i)
+    {
+        cout << "Cell2DVertices[" << i << "]: ";
+        for (unsigned int j = 0; j < mesh.Cell2DVertices[i].size(); ++j)
+        {
+            cout << mesh.Cell2DVertices[i][j] << " ";
+        }
+        cout << std::endl;
+    }
     triangulation_c1(3, 3, mesh);
+    
+
     
     Gedim::UCDUtilities utilities;
     {
