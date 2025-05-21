@@ -3,20 +3,17 @@ GeodeticSolid build_icosahedron()
     GeodeticSolid solid;
     
     solid.NumCell0D = 12;
-    solid.NumCell1D = 30;
-    solid.NumCell2D = 20;
-
-    solid.Cell0DId.resize(solid.NumCell0D);
-	solid.Cell1DId.resize(solid.NumCell1D);
-	solid.Cell2DId.resize(solid.NumCell2D);
-    
+	solid.Cell0DId.resize(solid.NumCell0D);
 	solid.Cell0DCoordinates = Eigen::MatrixXd::Zero(3, solid.NumCell0D);
-	
-    solid.Cell1DExtrema = Eigen::MatrixXi::Zero(2, solid.NumCell1D);
 
-	solid.Cell2DNumVertices.resize(solid.NumCell2D);
+    solid.NumCell1D = 30;
+	solid.Cell1DId.resize(solid.NumCell1D);
+	solid.Cell1DExtrema = Eigen::MatrixXi::Zero(2, solid.NumCell1D);
+
+    solid.NumCell2D = 20;
+	solid.Cell2DId.resize(solid.NumCell2D);
+    solid.Cell2DNumVertices.resize(solid.NumCell2D);
 	solid.Cell2DNumEdges.resize(solid.NumCell2D);
-	
     solid.Cell2DVertices.resize(solid.NumCell2D);
     solid.Cell2DEdges.resize(solid.NumCell2D);
 
@@ -156,4 +153,4 @@ GeodeticSolid build_icosahedron()
     solid.Cell3DNumFaces = 4;
 
     return solid;
-} */
+} 

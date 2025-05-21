@@ -12,10 +12,7 @@ namespace GeodeticLibrary
 
 void fill_Cell3D(GeodeticSolid& solid)
 {
-    solid.Cell3DNumVertices = solid.NumCell0D;
-    solid.Cell3DNumEdges = solid.NumCell1D;
-    solid.Cell3DNumFaces = solid.NumCell2D;
-
+    
     solid.Cell3DVertices.resize(solid.NumCell0D);
     solid.Cell3DEdges.resize(solid.NumCell1D);
     solid.Cell3DFaces.resize(solid.NumCell2D);
@@ -24,15 +21,28 @@ void fill_Cell3D(GeodeticSolid& solid)
     {
         solid.Cell3DVertices[i] = i;
     }
-
     for (unsigned int i = 0; i < solid.NumCell1D; ++i)
     {
         solid.Cell3DEdges[i] = i;
     }
-
     for (unsigned int i = 0; i < solid.NumCell2D; ++i)
     {
         solid.Cell3DFaces[i] = i;
+    }
+}
+
+void unit_sphere_projection(double& x, double& y, double& z)
+{
+    double norm = std::sqrt(x*x + y*y + z*z);
+    if (norm > 0.0)
+    {
+        x /= norm;
+        y /= norm;
+        z /= norm;
+    }
+    else
+    {
+        cout << "Error: Zero vector cannot be projected onto the unit sphere." << endl;
     }
 }
 
@@ -49,7 +59,6 @@ GeodeticSolid build_tetrahedron()
     solid.Cell1DId.resize(solid.NumCell1D);
     solid.Cell1DExtrema = Eigen::MatrixXi::Zero(2, solid.NumCell1D);
 
-<<<<<<< HEAD
     solid.NumCell2D = 4;
     solid.Cell2DId.resize(solid.NumCell2D);
     solid.Cell2DNumVertices.resize(solid.NumCell2D);
@@ -58,11 +67,6 @@ GeodeticSolid build_tetrahedron()
     solid.Cell2DEdges.resize(solid.NumCell2D);
 
     //Cell0D
-=======
-    solid.Cell2DVertices.reserve(solid.NumCell2D);
-    solid.Cell2DEdges.reserve(solid.NumCell2D);
-    
->>>>>>> b20e58c649c9abc347def47b52cb7f9e27b53158
     Eigen::Matrix<double, 4, 3> vertices;
     vertices <<  1.0,  1.0,  1.0,
                 -1.0, -1.0,  1.0,
@@ -151,8 +155,8 @@ GeodeticSolid build_octahedron()
     solid.Cell2DId.resize(solid.NumCell2D);
     solid.Cell2DNumVertices.resize(solid.NumCell2D);
     solid.Cell2DNumEdges.resize(solid.NumCell2D);
-    solid.Cell2DVertices.reserve(solid.NumCell2D);
-    solid.Cell2DEdges.reserve(solid.NumCell2D);
+    solid.Cell2DVertices.resize(solid.NumCell2D);
+    solid.Cell2DEdges.resize(solid.NumCell2D);
 
     //Cell0D
     Eigen::Matrix<double, 6, 3> vertices;
@@ -236,13 +240,13 @@ GeodeticSolid build_octahedron()
 
     for(unsigned int i = 0; i < solid.NumCell2D; ++i)
     {
-        solid.Cell2DEdges[i].push_back(i); // questi sono gli indici dei vertici e degli spigoli di ogni faccia
+        // questi sono gli indici dei vertici e degli spigoli di ogni faccia
         solid.Cell2DEdges[i].push_back(i); // sembra uguale alla riga prima, ma nel modo in cui ho ordinato gli spigoli tutte le facce hanno come primo spigolo lo spigolo di indice i
 
-        int v = 8 + (i % 4);
+        unsigned int v = 8 + (i % 4);
         solid.Cell2DEdges[i].push_back(v);
 
-        int u = (i + 1) % 4;
+        unsigned int u = (i + 1) % 4;
 
         if (i + 1 == 4)
         {
@@ -416,23 +420,6 @@ GeodeticSolid build_icosahedron()
     return solid;
 } 
 
-void unit_sphere_projection(double& x, double& y, double& z)
-{
-	double norm = sqrt(x*x + y*y + z*z);
-	
-	if (norm == 0)
-	{
-		cerr << "Cannot project (0, 0, 0) onto the unit sphere" << endl;
-		return;
-	}
-	
-	x /= norm;
-	y /= norm;
-	z /= norm;
-	
-	return;
-}		
-
 void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid)
 {
     unsigned int T = b*b;
@@ -579,7 +566,6 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
                 }
             }
         }
-<<<<<<< HEAD
         return;
     } */
 }
@@ -608,12 +594,7 @@ void build_polygon_class_1(unsigned int p, unsigned int q, unsigned int b, unsig
     {
         solid = build_tetrahedron();
     }
-    else{}   
-}
-
-=======
-        return;    
+    return;    
 }
     
->>>>>>> b20e58c649c9abc347def47b52cb7f9e27b53158
 }// namespace GeodeticLibrary

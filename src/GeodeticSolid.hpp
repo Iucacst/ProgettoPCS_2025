@@ -8,7 +8,8 @@ using namespace Eigen;
 
 namespace GeodeticLibrary {
 	
-	struct GeodeticSolid {
+	struct GeodeticSolid
+	{
 		unsigned int NumCell0D = 0; 
 		vector<unsigned int> Cell0DId = {}; 
 		MatrixXd Cell0DCoordinates = {}; 
