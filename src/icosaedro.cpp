@@ -6,19 +6,19 @@ GeodeticSolid build_icosahedron()
     solid.NumCell1D = 30;
     solid.NumCell2D = 20;
 
-    solid.Cell0DId.reserve(solid.NumCell0D);
-	solid.Cell1DId.reserve(solid.NumCell1D);
-	solid.Cell2DId.reserve(solid.NumCell2D);
+    solid.Cell0DId.resize(solid.NumCell0D);
+	solid.Cell1DId.resize(solid.NumCell1D);
+	solid.Cell2DId.resize(solid.NumCell2D);
     
 	solid.Cell0DCoordinates = Eigen::MatrixXd::Zero(3, solid.NumCell0D);
 	
     solid.Cell1DExtrema = Eigen::MatrixXi::Zero(2, solid.NumCell1D);
 
-	solid.Cell2DNumVertices.reserve(solid.NumCell2D);
-	solid.Cell2DNumEdges.reserve(solid.NumCell2D);
+	solid.Cell2DNumVertices.resize(solid.NumCell2D);
+	solid.Cell2DNumEdges.resize(solid.NumCell2D);
 	
-    solid.Cell2DVertices.reserve(solid.NumCell2D);
-    solid.Cell2DEdges.reserve(solid.NumCell2D);
+    solid.Cell2DVertices.resize(solid.NumCell2D);
+    solid.Cell2DEdges.resize(solid.NumCell2D);
 
 	//Cell0D
     Eigen::Matrix<double, 12, 3> vertices;
@@ -59,70 +59,78 @@ GeodeticSolid build_icosahedron()
 	//Cell1D
 	for (unsigned int j = 0; j < 5; ++j)
 	{
-		solid.Cell1DId.push_back(j);
+		solid.Cell1DId[j] = j;
 		solid.Cell1DExtrema(0, j) = solid.Cell0DId[0];
-		solid.Cell1DExtrema(1, j) = solid.Cell0DId[j+1];
+		solid.Cell1DExtrema(1, j) = solid.Cell0DId[j + 1];
 		
-		solid.Cell1DId.push_back(j+5);
-		solid.Cell1DExtrema(0, j+5) = solid.Cell0DId[11];
-		solid.Cell1DExtrema(1, j+5) = solid.Cell0DId[j+6];
-	}
-	
-	for (unsigned int j = 0; j < 5, ++j)
-	{
-		solid.Cell1DId.push_back(j+10);
-		solid.Cell1DExtrema(0, j+10) = solid.Cell0DId[j+1];
-		solid.Cell1DExtrema(1, j+10) = solid.Cell0DId[(j+2)%5];
+		solid.Cell1DId[j + 5] = j + 5;
+		solid.Cell1DExtrema(0, j + 5) = solid.Cell0DId[11];
+		solid.Cell1DExtrema(1, j + 5) = solid.Cell0DId[j + 6];
+
+		solid.Cell1DId[j+10] = j + 10;
+		solid.Cell1DExtrema(0, j + 10) = solid.Cell0DId[j + 1];
+		solid.Cell1DExtrema(1, j + 10) = solid.Cell0DId[(j + 1) % 5 + 1];
+
+		solid.Cell1DId[j + 15] = j + 15;
+		solid.Cell1DExtrema(0, j + 15) = solid.Cell0DId[j + 6];
+		solid.Cell1DExtrema(1, j + 15) = solid.Cell0DId[(j + 1) % 5 + 6];
+
+		//vedere se copilot rompe sta roba
+		solid.Cell1DId[j + 20] = j + 20;
+		solid.Cell1DExtrema(0, j + 20) = solid.Cell0DId[j + 1];
+		solid.Cell1DExtrema(1, j + 20) = solid.Cell0DId[j + 6];
 		
-		solid.Cell1DId.push_back(j+15);
-		solid.Cell1DExtrema(0, j+15) = solid.Cell0DId[j+6];
+		solid.Cell1DId.[j + 25] = j + 25;
 		if (j == 4)
 		{
-			solid.Cell1DExtrema(1, j+15) = solid.Cell0DId[6];
-		}
-		else
-		{
-			solid.Cell1DExtrema(1, j+15) = solid.Cell0DId[j+7];
-		}
-	}
-	
-	for (unsigned int j = 0; j < 5; ++j)
-	{
-		solid.Cell1DId.push_back(j+20);
-		solid.Cell1DExtrema(0, j+20) = solid.Cell0DId[j+1];
-		solid.Cell1DExtrema(1, j+20) = solid.Cell0DId[j+6];
-		
-		solid.Cell1DId.push_back(j+25);
-		if (j == 4)
-		{
-			solid.Cell1DExtrema(0, j+25) = solid.Cell0DId[1];
+			solid.Cell1DExtrema(0, j + 25) = solid.Cell0DId[1];
 		}
 		else 
 		{
-			solid.Cell1DExtrema(0, j+25) = solid.Cell0DId[j+2];
+			solid.Cell1DExtrema(0, j + 25) = solid.Cell0DId[j + 2];
 		}
-		solid.Cell1DExtrema(1, j+25) = solid.Cell0DId[j+6];
+		solid.Cell1DExtrema(1, j + 25) = solid.Cell0DId[j + 6];
 	}
 
 
-	//Cell2D
-	/*
-    for (int i = 0; i < solid.NumCell2D; ++i)
+	//Cell2D 
+
+    for (int i = 0; i < 5; ++i)
     {
-        int v = 0;
+        solid.Cell2DId[i] = i;
+        solid.Cell2DNumVertices[i] = 3;
+        solid.Cell2DNumEdges[i] = 3;
+		solid.Cell2DVertices[i].push_back(0);
+		solid.Cell2DVertices[i].push_back(i + 1);
+		solid.Cell2DVertices[i].push_back((i + 1) % 5 + 1);
 
-        solid.Cell2DId.push_back(i);
-        solid.Cell2DNumVertices.push_back(3);
-        solid.Cell2DNumEdges.push_back(3);
-        
-        solid.Cell2DEdges[i].push_back(i);
-        solid.Cell2DVertices[i].push_back(i);
+		solid.Cell2DId[i + 5] = i + 5;
+		solid.Cell2DNumVertices[i + 5] = 3;
+		solid.Cell2DNumEdges[i + 5] = 3;
+		solid.Cell2DVertices[i + 5].push_back(11);
+		solid.Cell2DVertices[i + 5].push_back(i + 6);
+		solid.Cell2DVertices[i + 5].push_back((i + 1) % 5 + 6);
 
-        for (int j = 0; j < 3; ++j)
-        {
-            v = (j + 2) % 4;
-            solid.Cell2DVertices[i].push_back(v);
+		solid.Cell2DId[i + 10] = i + 10;
+		solid.Cell2DNumVertices[i + 10] = 3;
+		solid.Cell2DNumEdges[i + 10] = 3;
+		solid.Cell2DVertices[i + 10].push_back(i + 1);
+		solid.Cell2DVertices[i + 10].push_back((i + 1) % 5 + 1);
+		solid.Cell2DVertices[i + 10].push_back((i + 1) % 5 + 6);
+
+		solid.Cell2DId[i + 15] = i + 15;
+		solid.Cell2DNumVertices[i + 15] = 3;
+		solid.Cell2DNumEdges[i + 15] = 3;
+		solid.Cell2DVertices[i + 15].push_back(i + 6);
+		solid.Cell2DVertices[i + 15].push_back((i + 1) % 5 + 6);
+		if (i == 4)
+		{
+			solid.Cell2DVertices[i + 15].push_back(6);
         }
+		else
+		{
+			solid.Cell2DVertices[i + 15].push_back(i + 7);
+		}
     }
 
     solid.Cell2DEdges[0].push_back(5); // Faccia 2,3,0

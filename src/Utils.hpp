@@ -12,6 +12,7 @@ namespace GeodeticLibrary
 	GeodeticSolid build_icosahedron();
 	
 	void unit_sphere_projection(double& x, double& y, double& z);
+	void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid);
 	void build_polygon_class_1(unsigned int p, unsigned int q, unsigned int b, unsigned int c);
 
 	/*bool ImportMesh(PolygonalMesh& mesh);
