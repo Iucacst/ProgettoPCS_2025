@@ -531,7 +531,7 @@ GeodeticSolid build_icosahedron()
 		solid.Cell2DVertices[i + 5].push_back((i + 1) % 5 + 6);
         solid.Cell2DEdges[i + 5].push_back(i + 5); // Faccia 11, i+6, i+7
         solid.Cell2DEdges[i + 5].push_back(i + 15);
-        solid.Cell2DEdges[i + 5].push_back(i + 6);
+        solid.Cell2DEdges[i + 5].push_back((i + 1) % 5 + 6);
 
 		solid.Cell2DId[i + 10] = i + 10;
 		solid.Cell2DNumVertices[i + 10] = 3;
@@ -571,8 +571,14 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
 {
     unsigned int T = b*b;
 
+    unsigned int ctr0D = solid.NumCell0D;
+    unsigned int ctr1D = 0;
+    unsigned int ctr2D = solid.NumCell2D;
+
     if(q == 3)
     {
+        solid.NumCell0D = 2*T + 2;
+        
         solid.Cell0DId.reserve(2*T + 2);
         solid.Cell1DId.reserve(6*T);
         solid.Cell2DId.reserve(4*T);
@@ -588,6 +594,8 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
     }
     else if(q == 4)
     {
+        solid.NumCell0D = 4*T + 2;
+
         solid.Cell0DId.reserve(4*T + 2);
         solid.Cell1DId.reserve(12*T);
         solid.Cell2DId.reserve(8*T);
@@ -603,6 +611,8 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
     }
     else if(q == 5)
     {
+        solid.NumCell0D = 10*T + 2;
+
         solid.Cell0DId.reserve(10*T + 2);
         solid.Cell1DId.reserve(30*T);
         solid.Cell2DId.reserve(20*T);
@@ -617,9 +627,6 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
         solid.Cell2DEdges.reserve(20*T);
     }
 
-    unsigned int ctr0D = solid.NumCell0D;
-    unsigned int ctr1D = 0;
-    unsigned int ctr2D = solid.NumCell2D;
 
     if (b == 1)
     {
@@ -660,27 +667,14 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
     }
     
 
-    /* if (b >= 3)
+    if (b >= 3)
     {
         for (unsigned int i = 0; i < solid.NumCell2D; ++i)
         {
-            cout << "Cell2DVertices[" << i << "]: ";
-            for (unsigned int j = 0; j < solid.Cell2DVertices[i].size(); ++j)
-            {
-                cout << solid.Cell2DVertices[i][j] << " ";
-            }
-            cout << std::endl;
-        }
-        for (unsigned int i = 0; i < solid.NumCell2D; ++i)
-            {
-                Id_P = solid.Cell2DVertices[i][1];
-                Id_Q = solid.Cell2DVertices[i][2];
-                Id_R = solid.Cell2DVertices[i][3];
-                
-             
-                // Printami tutto cell2dVertices
-
-        }
+            Id_P = solid.Cell2DVertices[i][0]; 
+            Id_Q = solid.Cell2DVertices[i][1];
+            Id_R = solid.Cell2DVertices[i][2];
+        
         
             
             for (unsigned int j = 0; j < 3; ++j)
@@ -705,13 +699,14 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
                     {
                         solid.Cell0DCoordinates(h, ctr0D) = x[h] + z[h]*k;
                     }
+                    cout << ctr0D << endl;
                     ctr0D++;
                 }
             }
         }
-        
-    } */
+        }
 }
+
 
 void build_polygon_c1(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
 {
@@ -739,5 +734,4 @@ void build_polygon_c1(unsigned int p, unsigned int q, unsigned int b, unsigned i
     }
     return;    
 }
-    
 }// namespace GeodeticLibrary
