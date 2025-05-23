@@ -11,9 +11,9 @@ int main()
 {
     GeodeticSolid mesh;
 
-    mesh = build_octahedron();
+    mesh = build_icosahedron();
 
-    triangulation_c1(6, 4, mesh);
+    triangulation_c1(6, 5, mesh);
     
     print_GeodeticSolid(mesh);
     

@@ -675,8 +675,6 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
             Id_Q = solid.Cell2DVertices[i][1];
             Id_R = solid.Cell2DVertices[i][2];
         
-        
-            
             for (unsigned int j = 0; j < 3; ++j)
             {
                 w[j] = (solid.Cell0DCoordinates(j, Id_Q) - solid.Cell0DCoordinates(j, Id_P)) / b;
@@ -699,7 +697,6 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
                     {
                         solid.Cell0DCoordinates(h, ctr0D) = x[h] + z[h]*k;
                     }
-                    cout << ctr0D << endl;
                     ctr0D++;
                 }
             }
