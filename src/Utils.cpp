@@ -403,7 +403,7 @@ GeodeticSolid build_octahedron()
         {
             solid.Cell2DEdges[i].push_back(4);
         }
-        else if(i >= 0 && i < 3)
+        else if(/*i >= 0 && */ i < 3)
         {
             solid.Cell2DEdges[i].push_back(u); 
         }
@@ -639,7 +639,6 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
     vector <double> x(3);
     vector <double> y(3);
     vector <double> z(3);
-    unsigned int Id_P, Id_Q, Id_R;
     unsigned int P, Q, R;
 
     for (unsigned int i = 0; i < solid.NumCell1D; ++i)
@@ -671,21 +670,21 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
     {
         for (unsigned int i = 0; i < solid.NumCell2D; ++i)
         {
-            Id_P = solid.Cell2DVertices[i][0]; 
-            Id_Q = solid.Cell2DVertices[i][1];
-            Id_R = solid.Cell2DVertices[i][2];
+            P = solid.Cell2DVertices[i][0]; 
+            Q = solid.Cell2DVertices[i][1];
+            R = solid.Cell2DVertices[i][2];
         
             for (unsigned int j = 0; j < 3; ++j)
             {
-                w[j] = (solid.Cell0DCoordinates(j, Id_Q) - solid.Cell0DCoordinates(j, Id_P)) / b;
-                v[j] = (solid.Cell0DCoordinates(j, Id_R) - solid.Cell0DCoordinates(j, Id_P)) / b;
+                w[j] = (solid.Cell0DCoordinates(j, Q) - solid.Cell0DCoordinates(j, P)) / b;
+                v[j] = (solid.Cell0DCoordinates(j, R) - solid.Cell0DCoordinates(j, P)) / b;
             }
             for (unsigned int j = 2; j <= b-1; ++j)
             {
                 for (unsigned int k = 0; k < 3; ++k)
                 {
-                    x[k] = solid.Cell0DCoordinates(k, Id_P) + w[k]*j;
-                    y[k] = solid.Cell0DCoordinates(k, Id_P) + v[k]*j;
+                    x[k] = solid.Cell0DCoordinates(k, P) + w[k]*j;
+                    y[k] = solid.Cell0DCoordinates(k, P) + v[k]*j;
 
                     z[k] = (y[k] - x[k]) / j;
                 }
@@ -709,12 +708,15 @@ void build_polygon_c1(unsigned int p, unsigned int q, unsigned int b, unsigned i
 {
     GeodeticSolid solid;
 
-    if((b == 0 && c == 0 || b != 0 && c != 0) && p != 3)
+    if (p != 3)
     {
         cerr << "Polyhedron does not belong to class 1." << endl;
     }
-
-    if (q > 5 || q < 3)
+    if (q != 3 && q != 4 && q != 5)
+    {
+        cerr << "Polyhedron does not belong to class 1." << endl;
+    }
+    if ((b == 0 && c == 0) || (b != 0 && c != 0))
     {
         cerr << "Polyhedron does not belong to class 1." << endl;
     }
@@ -728,6 +730,14 @@ void build_polygon_c1(unsigned int p, unsigned int q, unsigned int b, unsigned i
     if (q == 3) 
     {
         solid = build_tetrahedron();
+    }
+    else if (q == 4)
+    {
+        solid = build_octahedron();
+    }
+    else if (q == 5)
+    {
+        solid = build_icosahedron();
     }
     return;    
 }
