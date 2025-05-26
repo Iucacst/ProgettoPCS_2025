@@ -13,7 +13,7 @@ int main()
 
     mesh = build_icosahedron();
 
-    triangulation_c1(6, 5, mesh);
+    triangulation_c1(5, 5, mesh);
     
     print_GeodeticSolid(mesh);
     
