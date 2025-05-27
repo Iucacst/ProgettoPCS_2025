@@ -521,7 +521,7 @@ GeodeticSolid build_icosahedron()
 		solid.Cell2DVertices[i].push_back((i + 1) % 5 + 1);
         solid.Cell2DEdges[i].push_back(i); // Faccia 0, i, i+1
         solid.Cell2DEdges[i].push_back(i + 10);
-        solid.Cell2DEdges[i].push_back(i + 1);
+        solid.Cell2DEdges[i].push_back((i + 1) % 5);
 
 		solid.Cell2DId[i + 5] = i + 5;
 		solid.Cell2DNumVertices[i + 5] = 3;
@@ -531,7 +531,7 @@ GeodeticSolid build_icosahedron()
 		solid.Cell2DVertices[i + 5].push_back((i + 1) % 5 + 6);
         solid.Cell2DEdges[i + 5].push_back(i + 5); // Faccia 11, i+6, i+7
         solid.Cell2DEdges[i + 5].push_back(i + 15);
-        solid.Cell2DEdges[i + 5].push_back((i + 1) % 5 + 6);
+        solid.Cell2DEdges[i + 5].push_back((i + 1) % 5 + 5);
 
 		solid.Cell2DId[i + 10] = i + 10;
 		solid.Cell2DNumVertices[i + 10] = 3;
@@ -573,7 +573,7 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
 
     unsigned int ctr0D = solid.NumCell0D;
     unsigned int ctr1D = 0;
-    unsigned int ctr2D = solid.NumCell2D;
+    unsigned int ctr2D = 0;
 
     if(q == 3)
     {
@@ -586,8 +586,8 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
         solid.Cell0DCoordinates.conservativeResize(3, 2*T + 2);
         solid.Cell1DExtrema.conservativeResize(2, 6*T); 
 
-        solid.Cell2DNumVertices.reserve(4*T);
-        solid.Cell2DNumEdges.reserve(4*T);
+        solid.Cell2DNumVertices.resize(4*T);
+        solid.Cell2DNumEdges.resize(4*T);
 
         solid.Cell2DVertices.reserve(4*T);
         solid.Cell2DEdges.reserve(4*T);
@@ -603,8 +603,8 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
         solid.Cell0DCoordinates.conservativeResize(3, 4*T + 2);
         solid.Cell1DExtrema.conservativeResize(2, 12*T);
         
-        solid.Cell2DNumVertices.reserve(8*T);
-        solid.Cell2DNumEdges.reserve(8*T);
+        solid.Cell2DNumVertices.resize(8*T);
+        solid.Cell2DNumEdges.resize(8*T);
         
         solid.Cell2DVertices.reserve(8*T);
         solid.Cell2DEdges.reserve(8*T);
@@ -620,11 +620,11 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
         solid.Cell0DCoordinates.conservativeResize(3, 10*T + 2);
         solid.Cell1DExtrema.conservativeResize(2, 30*T);
         
-        solid.Cell2DNumVertices.reserve(20*T);
-        solid.Cell2DNumEdges.reserve(20*T);
+        solid.Cell2DNumVertices.resize(20*T);
+        solid.Cell2DNumEdges.resize(20*T);
         
-        solid.Cell2DVertices.reserve(20*T);
-        solid.Cell2DEdges.reserve(20*T);
+        solid.Cell2DVertices.resize(20*T);
+        solid.Cell2DEdges.resize(20*T);
     }
 
 
@@ -681,7 +681,6 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
         }
     }
     solid.NumCell1D = ctr1D; // Da fare per far funzionare il print del txt e per l'esportazione dei punti
-    cout << ctr1D;
     vector<Eigen::MatrixXi> Cell2D_frag(solid.NumCell2D);
         for (auto& mat : Cell2D_frag) {
             mat = Eigen::MatrixXi::Zero(b + 1, b + 1);       
@@ -786,7 +785,7 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
                     solid.Cell1DId.push_back(ctr1D);
                     solid.Cell1DExtrema(0, ctr1D) = Cell2D_frag[i](j, k);
                     solid.Cell1DExtrema(1, ctr1D) = Cell2D_frag[i](j, k + 1);
-                    ctr1D++;
+                    ctr1D++;                   
                 }
                 
                 for(unsigned int k = 0; k < j; ++k)
@@ -794,7 +793,7 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
                     solid.Cell1DId.push_back(ctr1D);
                     solid.Cell1DExtrema(0, ctr1D) = Cell2D_frag[i](b - k, b - j);
                     solid.Cell1DExtrema(1, ctr1D) = Cell2D_frag[i](b - k - 1, b - j);
-                    ctr1D++;
+                    ctr1D++;                    
                 }
 
                 for(unsigned int k = 0; k < j; ++k)
@@ -807,39 +806,92 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
             }
         }
         solid.NumCell1D = ctr1D;
-    }
-    // Debug output for Cell2D_frag
-    for (unsigned int i = 0; i < solid.NumCell2D; ++i)
-    {
-        std::cout << "Cell2D_frag[" << i << "]:" << std::endl;
-        for (unsigned int j = 0; j <= b; ++j)
+
+        solid.Cell2DId.clear();
+
+        for (unsigned int i = 0; i < solid.NumCell2D; ++i)
         {
-            for (unsigned int k = 0; k <= j; ++k)
+            for(unsigned int j = 0; j <= b - 1; ++j)
             {
-                std::cout << Cell2D_frag[i](j, k) << " ";
+                for(unsigned int k = 0; k <= j; ++k)
+                {
+                    solid.Cell2DVertices[ctr2D].clear();
+                    solid.Cell2DEdges[ctr2D].clear();
+
+                    solid.Cell2DId.push_back(ctr2D);
+                    solid.Cell2DNumVertices[ctr2D] = 3;
+                    solid.Cell2DNumEdges[ctr2D] = 3;
+
+                    solid.Cell2DVertices[ctr2D].push_back(Cell2D_frag[i](j, k));
+                    solid.Cell2DVertices[ctr2D].push_back(Cell2D_frag[i](j + 1, k));
+                    solid.Cell2DVertices[ctr2D].push_back(Cell2D_frag[i](j + 1, k + 1));
+                    for (unsigned int h = 0; h < 3; ++h)
+                    {
+                        solid.Cell2DEdges[ctr2D].push_back(find_edge(solid.Cell2DVertices[ctr2D][h], solid.Cell2DVertices[ctr2D][(h + 1) % 3], solid));
+                    }
+                    ctr2D++;
+                    
+                    if(j >= 1 && k < j)
+                    {
+                        solid.Cell2DVertices[ctr2D].clear();
+                        solid.Cell2DEdges[ctr2D].clear();
+
+                        solid.Cell2DId.push_back(ctr2D);
+                        solid.Cell2DNumVertices[ctr2D] = 3;
+                        solid.Cell2DNumEdges[ctr2D] = 3;
+
+                        solid.Cell2DVertices[ctr2D].push_back(Cell2D_frag[i](j, k));
+                        solid.Cell2DVertices[ctr2D].push_back(Cell2D_frag[i](j, k + 1));
+                        solid.Cell2DVertices[ctr2D].push_back(Cell2D_frag[i](j + 1, k + 1));
+                        for (unsigned int h = 0; h < 3; ++h)
+                        {
+                            solid.Cell2DEdges[ctr2D].push_back(find_edge(solid.Cell2DVertices[ctr2D][h], solid.Cell2DVertices[ctr2D][(h + 1) % 3], solid));
+                        }
+                        ctr2D++;
+                    }
+                    
+                }
             }
-            std::cout << std::endl;
+
         }
-        std::cout << std::endl;
+        solid.NumCell2D = ctr2D;
+
+        fill_Cell3D(solid);
     }
 }
+unsigned int find_edge(unsigned int P, unsigned int Q, GeodeticSolid& solid)
+{
+    unsigned int edge_id = 0;
+    for (unsigned int i = 0; i < solid.NumCell1D; ++i)
+    {
+        if ((solid.Cell1DExtrema(0, i) == P && solid.Cell1DExtrema(1, i) == Q) ||
+            (solid.Cell1DExtrema(0, i) == Q && solid.Cell1DExtrema(1, i) == P))
+        {
+            edge_id = i;
+            break;
+        }
+    }
+    return edge_id;
+}
 
-
-void build_polygon_c1(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
+GeodeticSolid build_polygon_c1(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
 {
     GeodeticSolid solid;
 
     if (p != 3)
     {
         cerr << "Polyhedron does not belong to class 1." << endl;
+        return solid;
     }
     if (q != 3 && q != 4 && q != 5)
     {
         cerr << "Polyhedron does not belong to class 1." << endl;
+        return solid;
     }
     if ((b == 0 && c == 0) || (b != 0 && c != 0))
     {
         cerr << "Polyhedron does not belong to class 1." << endl;
+        return solid;
     }
 
     if (b == 0)
@@ -860,6 +912,60 @@ void build_polygon_c1(unsigned int p, unsigned int q, unsigned int b, unsigned i
     {
         solid = build_icosahedron();
     }
-    return;    
+
+    triangulation_c1(b, q, solid); 
+    GeodeticSolid_projection(solid); 
+    print_GeodeticSolid(solid);
+
+    return solid;    
+}
+
+bool check_ordination(GeodeticSolid& solid)
+{
+    if(solid.NumCell2D == 0)
+    {
+        cerr << "No faces to check." << endl;
+        return false;
+    }
+
+    for(unsigned int i = 0; i < solid.NumCell2D; ++i)
+    {
+        
+        unsigned int E = solid.Cell2DNumEdges[i];
+        for(unsigned int e = 0; e < E; ++e)
+        {
+            unsigned int l1 = solid.Cell2DEdges[i][e];
+            unsigned int l2 = solid.Cell2DEdges[i][(e + 1) % E];
+
+            unsigned int e11 = solid.Cell1DExtrema(0, l1);
+            unsigned int e12 = solid.Cell1DExtrema(1, l1);
+            unsigned int e21 = solid.Cell1DExtrema(0, l2);
+            unsigned int e22 = solid.Cell1DExtrema(1, l2);
+            
+            if(e11 != e21 && e11 != e22 &&
+               e12 != e21 && e12 != e22)
+            {
+                cerr << "Edges " << l1 << " and " << l2 << " are not ordered correctly in face " << i << endl;
+                return false;
+            }
+
+            unsigned int v1 = solid.Cell2DVertices[i][e];
+            if(v1 != e11 && v1 != e12)
+            {
+                cerr << "Vertex " << v1 << " is not stored correctly in face " << i << endl;
+                return false;
+            }
+        }
+    }
+    cout << "For every face edges and vertices are correctly stored." << endl;
+    return true;
+}
+
+void GeodeticSolid_projection(GeodeticSolid& solid)
+{
+    for (unsigned int i = 0; i < solid.NumCell0D; ++i)
+    {
+        unit_sphere_projection(solid.Cell0DCoordinates(0, i), solid.Cell0DCoordinates(1, i), solid.Cell0DCoordinates(2, i));
+    }
 }
 }// namespace GeodeticLibrary

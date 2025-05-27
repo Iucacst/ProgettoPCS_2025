@@ -9,18 +9,14 @@ using namespace GeodeticLibrary;
 
 int main()
 {
-    GeodeticSolid mesh;
-
-    mesh = build_icosahedron();
-
-    triangulation_c1(5, 5, mesh);
+    GeodeticSolid solid = build_polygon_c1(3, 3, 0, 12);
     
-    print_GeodeticSolid(mesh);
-    
+    check_ordination(solid);
+
     Gedim::UCDUtilities utilities;
     {
-        utilities.ExportPoints("./Cell0D.inp", mesh.Cell0DCoordinates);
-        utilities.ExportSegments("./Cell1D.inp", mesh.Cell0DCoordinates, mesh.Cell1DExtrema);
+        utilities.ExportPoints("./Cell0D.inp", solid.Cell0DCoordinates);
+        utilities.ExportSegments("./Cell1D.inp", solid.Cell0DCoordinates, solid.Cell1DExtrema);
     }
 	
 	
