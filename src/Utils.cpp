@@ -589,8 +589,8 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
         solid.Cell2DNumVertices.resize(4*T);
         solid.Cell2DNumEdges.resize(4*T);
 
-        solid.Cell2DVertices.reserve(4*T);
-        solid.Cell2DEdges.reserve(4*T);
+        solid.Cell2DVertices.resize(4*T);
+        solid.Cell2DEdges.resize(4*T);
     }
     else if(q == 4)
     {
@@ -606,8 +606,8 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
         solid.Cell2DNumVertices.resize(8*T);
         solid.Cell2DNumEdges.resize(8*T);
         
-        solid.Cell2DVertices.reserve(8*T);
-        solid.Cell2DEdges.reserve(8*T);
+        solid.Cell2DVertices.resize(8*T);
+        solid.Cell2DEdges.resize(8*T);
     }
     else if(q == 5)
     {
@@ -686,7 +686,7 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
             mat = Eigen::MatrixXi::Zero(b + 1, b + 1);       
         } 
 
-    if (b >= 3)  // Parte interna
+    if (b >= 2)  // Parte interna
     {
         
         for (unsigned int i = 0; i < solid.NumCell2D; ++i)
@@ -805,7 +805,6 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
                 }            
             }
         }
-        solid.NumCell1D = ctr1D;
 
         solid.Cell2DId.clear();
 
@@ -854,11 +853,108 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
             }
 
         }
+
+        solid.NumCell1D = ctr1D;
         solid.NumCell2D = ctr2D;
 
         fill_Cell3D(solid);
     }
 }
+
+void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid)
+{
+    unsigned int ctr0D = solid.NumCell0D;
+    unsigned int ctr1D = 0;
+    unsigned int ctr2D = 0;
+
+    solid.Cell0DCoordinates.conservativeResize(3, 20*b^4);
+  
+
+    Eigen::MatrixXi Cell1D_frag = Eigen::MatrixXi::Zero(solid.NumCell1D, 2*b + 1);
+    vector <double> w(3);
+    vector <double> v(3);
+    vector <double> x(3);
+    vector <double> y(3);
+    vector <double> z(3);
+    unsigned int P, Q, R;
+    unsigned int PQ, QR, RP;
+
+    for (unsigned int i = 0; i < solid.NumCell1D; ++i)
+    {
+        unsigned int P = solid.Cell1DExtrema(0, i);
+        unsigned int Q = solid.Cell1DExtrema(1, i);
+        Cell1D_frag(i, 0) = P;
+        Cell1D_frag(i, b) = Q;
+
+        for(unsigned int j = 0; j < 3; ++j)
+        {
+            w[j] = (solid.Cell0DCoordinates(j, Q) - solid.Cell0DCoordinates(j, P)) / (2*b);
+        }
+
+        for (unsigned int j = 1; j <= 2*b - 1; ++j)
+        {
+            solid.Cell0DId.push_back(ctr0D);
+            for (unsigned int k = 0; k < 3; ++k)
+            {
+                solid.Cell0DCoordinates(k, ctr0D) = solid.Cell0DCoordinates(k, P) + w[k]*j;
+            }
+            Cell1D_frag(i, j) = ctr0D;
+            ctr0D++;
+        }        
+    }
+
+    GeodeticSolid solid_tmp = solid;
+    triangulation_c1(b, q, solid_tmp);
+    unsigned int ctr = 0;
+
+    
+
+    if (b >= 3)
+    {
+        if (q == 3)
+        {
+            ctr = 4 + 6*(b - 1);
+        }
+        else if (q == 4)
+        {
+            ctr = 6 + 12*(b-1);
+        }
+        else if (q == 5)
+        {
+            ctr = 12 + 30*(b-1);
+        }
+
+        for (unsigned int i = ctr; i < solid_tmp.NumCell0D; ++i)
+        {
+            solid.Cell0DId.push_back(ctr0D);
+            for (unsigned int j = 0; j < 3; ++j)
+            {
+                solid.Cell0DCoordinates(j, ctr0D) = solid_tmp.Cell0DCoordinates(j, i);
+            }
+            ctr0D++;
+        }
+    }
+
+    for (unsigned int i = 0; i < solid_tmp.NumCell2D; ++i)
+    {
+        P = solid_tmp.Cell2DVertices[i][0]; 
+        Q = solid_tmp.Cell2DVertices[i][1];
+        R = solid_tmp.Cell2DVertices[i][2];
+
+        solid.Cell0DId.push_back(ctr0D);
+        for (unsigned int k = 0; k < 3; ++k)
+            {
+                solid.Cell0DCoordinates(k, ctr0D) = (solid_tmp.Cell0DCoordinates(k, P)+
+                                                    solid_tmp.Cell0DCoordinates(k, Q)+
+                                                    solid_tmp.Cell0DCoordinates(k, R)) / 3.0;
+            }
+        ctr0D++;
+    }
+
+    solid.NumCell0D = ctr0D; 
+    solid.Cell0DCoordinates.conservativeResize(3, solid.NumCell0D);
+}
+
 unsigned int find_edge(unsigned int P, unsigned int Q, GeodeticSolid& solid)
 {
     unsigned int edge_id = 0;
@@ -968,4 +1064,5 @@ void GeodeticSolid_projection(GeodeticSolid& solid)
         unit_sphere_projection(solid.Cell0DCoordinates(0, i), solid.Cell0DCoordinates(1, i), solid.Cell0DCoordinates(2, i));
     }
 }
+
 }// namespace GeodeticLibrary

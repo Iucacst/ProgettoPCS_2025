@@ -17,6 +17,7 @@ namespace GeodeticLibrary
 	GeodeticSolid build_icosahedron();
 	
 	void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid);
+	void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid);
 	GeodeticSolid build_polygon_c1(unsigned int p, unsigned int q, unsigned int b, unsigned int c);
 	bool check_ordination(GeodeticSolid& solid);
 	void GeodeticSolid_projection(GeodeticSolid& solid);
