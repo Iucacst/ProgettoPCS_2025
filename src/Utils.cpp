@@ -681,10 +681,11 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
         }
     }
     solid.NumCell1D = ctr1D; // Da fare per far funzionare il print del txt e per l'esportazione dei punti
-    vector<Eigen::MatrixXi> Cell2D_frag(solid.NumCell2D);
-        for (auto& mat : Cell2D_frag) {
-            mat = Eigen::MatrixXi::Zero(b + 1, b + 1);       
-        } 
+
+    for (auto& mat : solid.Cell2D_frag) 
+    {
+        mat = Eigen::MatrixXi::Zero(b + 1, b + 1);       
+    } 
 
     if (b >= 2)  // Parte interna
     {
@@ -920,8 +921,6 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
         }
     }
 
-
-
     for (unsigned int i = 0; i < solid.NumCell2D; ++i)
     {
         P = solid.Cell2DVertices[i][0]; 
@@ -1007,8 +1006,7 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
             {
                 solid.Cell0DCoordinates(j, ctr0D) = solid_tmp.Cell0DCoordinates(j, i);
             }
-            //possiamo riempire qua Cell2DFrag
-            ctr0D++;
+            ctr0D++; 
         }
     }
 
@@ -1025,6 +1023,8 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
                                                     solid_tmp.Cell0DCoordinates(k, Q)+
                                                     solid_tmp.Cell0DCoordinates(k, R)) / 3.0;
         }
+
+
         //possiamo riempire qua Cell2DFrag, decidere se rendere 
         ctr0D++;
     }
@@ -1032,39 +1032,7 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
     solid.NumCell0D = ctr0D; 
     solid.Cell0DCoordinates.conservativeResize(3, solid.NumCell0D);
 
-
-
-        //fatto il triangolo esterno, c'è da riempire l'interno
-
-        /*for (unsigned int j = 1; j <= b-1; ++j) // Da qua è da cambiare/togliere
-        {
-            for(unsigned int k = 0; k < j; ++k)
-            {
-                solid.Cell1DId.push_back(ctr1D);
-                solid.Cell1DExtrema(0, ctr1D) = Cell2D_frag[i](j, k);
-                solid.Cell1DExtrema(1, ctr1D) = Cell2D_frag[i](j, k + 1);
-                ctr1D++;                   
-            }
-            
-            for(unsigned int k = 0; k < j; ++k)
-            {
-                solid.Cell1DId.push_back(ctr1D);
-                solid.Cell1DExtrema(0, ctr1D) = Cell2D_frag[i](b - k, b - j);
-                solid.Cell1DExtrema(1, ctr1D) = Cell2D_frag[i](b - k - 1, b - j);
-                ctr1D++;                    
-            }
-
-            for(unsigned int k = 0; k < j; ++k)
-            {
-                solid.Cell1DId.push_back(ctr1D);
-                solid.Cell1DExtrema(0, ctr1D) = Cell2D_frag[i](b - j + k, k);
-                solid.Cell1DExtrema(1, ctr1D) = Cell2D_frag[i](b - j + k + 1, k + 1);
-                ctr1D++;
-            }            
-        }*/
     }
-
-
 }
 
 unsigned int find_edge(unsigned int P, unsigned int Q, GeodeticSolid& solid)
