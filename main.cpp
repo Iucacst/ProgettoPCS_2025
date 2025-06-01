@@ -9,9 +9,9 @@ using namespace GeodeticLibrary;
 
 int main()
 {
-    GeodeticSolid solid = build_polygon_c1(3, 3, 0, 1);
+    GeodeticSolid solid = build_polygon_c1(3, 5, 0, 1);
 
-    triangulation_c2(2, 3, solid);
+    triangulation_c2(5, 5, solid);
 
     Gedim::UCDUtilities utilities;
     {

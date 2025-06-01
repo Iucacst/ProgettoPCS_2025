@@ -34,9 +34,8 @@ namespace GeodeticLibrary {
 		vector<unsigned int> Cell3DEdges = {};
 		vector<unsigned int> Cell3DFaces = {};
 
-		Eigen::MatrixXi Cell1D_frag(solid.NumCell1D);
-		vector<Eigen::MatrixXi> Cell2D_frag(solid.NumCell2D);
-
+		Eigen::MatrixXi Cell1D_frag = {};
+		vector<Eigen::MatrixXi> Cell2D_frag = {};
 	};
 }
 
