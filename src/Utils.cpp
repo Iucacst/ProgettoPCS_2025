@@ -873,14 +873,16 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
     unsigned int ctr1D = 0;
     unsigned int ctr2D = 0;
 
-    solid.Cell0DCoordinates.conservativeResize(3, 200*b^4);
-    solid.Cell1DExtrema.conservativeResize(2, 200*b^4);
+    solid.Cell0DCoordinates.conservativeResize(3, solid.NumCell0D + solid.NumCell1D*(2*b - 1) + solid.NumCell2D*(3*(b*b)/2 - 3*b/2 + 1));
+    solid.Cell1DExtrema.conservativeResize(2, solid.NumCell1D*2*b + solid.NumCell2D*(9*(b*b)/2 + 3*b/2));
   
     solid.Cell1D_frag.resize(solid.NumCell1D, 2*b + 1);
     solid.Cell2D_frag.resize(solid.NumCell2D);
-    for (auto& mat : solid.Cell2D_frag) {
+    for (auto& mat : solid.Cell2D_frag) 
+    {
         mat = Eigen::MatrixXi::Zero(2*b + 1, 2*b + 1);       
     } 
+
     vector <double> w(3);
     vector <double> v(3);
     vector <double> x(3);
@@ -925,19 +927,6 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
             ctr1D++;
         }
     }
-
-    // print Cell1D_frag
-    for (unsigned int i = 0; i < solid.NumCell1D; ++i)
-    {
-        for (unsigned int j = 0; j < 2*b + 1; ++j)
-        {
-            std::cout << solid.Cell1D_frag(i, j) << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    cout << "suca" << endl;
-
     
     for (unsigned int i = 0; i < solid.NumCell2D; ++i)
     {
@@ -999,6 +988,14 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
         }
     }
 
+    for (unsigned int i = 0; i < solid.NumCell2D; ++i)
+    {
+        for (unsigned int j = 1; j <= 2*b - 1; j += 2)
+        {
+            solid.Cell2D_frag[i](j, j+1) = solid.Cell2D_frag[i](j, j);
+            solid.Cell2D_frag[i](j, j) = 0;
+        }
+    }
 
     if (b >= 3)
     {
@@ -1022,26 +1019,10 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
             {
                 solid.Cell0DCoordinates(j, ctr0D) = solid_tmp.Cell0DCoordinates(j, i);
             }
-            ctr0D++; 
+            ctr0D++;
         }
     }
 
-    for (unsigned int i = 0; i < solid_tmp.NumCell2D; ++i)
-    {
-        P = solid_tmp.Cell2DVertices[i][0]; 
-        Q = solid_tmp.Cell2DVertices[i][1];
-        R = solid_tmp.Cell2DVertices[i][2];
-
-        solid.Cell0DId.push_back(ctr0D);
-        for (unsigned int k = 0; k < 3; ++k)
-        {
-            solid.Cell0DCoordinates(k, ctr0D) = (solid_tmp.Cell0DCoordinates(k, P)+
-                                                solid_tmp.Cell0DCoordinates(k, Q)+
-                                                solid_tmp.Cell0DCoordinates(k, R)) / 3.0;
-        }
-        //possiamo riempire qua Cell2DFrag
-        ctr0D++;
-    }
 
     for (unsigned int i = 0; i < solid.NumCell2D; ++i)
     {
@@ -1067,25 +1048,146 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
                     cout << "Vertex not found for P: " << P << endl;
                 }
 
-                solid.Cell2D_frag[i](2 * j, k) = Q;
+                solid.Cell2D_frag[i](2 * j, k*2) = Q;
             }
         }
-    }
 
-    // print cell2D_frag
-    for (unsigned int i = 0; i < solid.NumCell2D; ++i)
+    }
+    
+    
+    for (unsigned int i = 0; i < solid_tmp.NumCell2D; ++i)
     {
-        for (unsigned int j = 0; j <= 2*b; ++j)
+        P = solid_tmp.Cell2DVertices[i][0]; 
+        Q = solid_tmp.Cell2DVertices[i][1];
+        R = solid_tmp.Cell2DVertices[i][2];
+
+        solid.Cell0DId.push_back(ctr0D);
+        for (unsigned int k = 0; k < 3; ++k)
         {
-            for (unsigned int k = 0; k <= j; ++k)
-            {
-                cout << solid.Cell2D_frag[i](j, k) << " ";
-            }
-            cout << endl;
+            solid.Cell0DCoordinates(k, ctr0D) = (solid_tmp.Cell0DCoordinates(k, P)+
+                                                solid_tmp.Cell0DCoordinates(k, Q)+
+                                                solid_tmp.Cell0DCoordinates(k, R)) / 3.0;
         }
-        cout << "------------------------" << endl;
+
+        for (unsigned int j = 0; j < solid.NumCell2D; ++j)
+        {
+            for (unsigned int k = 0; k <= 2*b - 2; k += 2)
+            {
+                for (unsigned int h = 0; h <= k; h += 2)
+                {
+                    P = solid.Cell2D_frag[j](k, h);
+                    Q = solid.Cell2D_frag[j](k + 2, h);
+                    R = solid.Cell2D_frag[j](k + 2, h + 2);
+
+                    for (unsigned int d = 0; d < 3; ++d)
+                    {
+                        v[d] = (solid.Cell0DCoordinates(d, P) +
+                              solid.Cell0DCoordinates(d, Q) +
+                              solid.Cell0DCoordinates(d, R)) / 3.0;
+                    }
+                    if(v[0] == solid.Cell0DCoordinates(0, ctr0D) &&
+                       v[1] == solid.Cell0DCoordinates(1, ctr0D) &&
+                       v[2] == solid.Cell0DCoordinates(2, ctr0D))
+                    {
+                        solid.Cell2D_frag[j](k + 1, h + 1) = ctr0D;
+                    }
+                
+                    if(h < k)
+                    {
+                        P = solid.Cell2D_frag[j](k, h);
+                        Q = solid.Cell2D_frag[j](k, h + 2);
+                        R = solid.Cell2D_frag[j](k + 2, h + 2);
+
+                        for (unsigned int d = 0; d < 3; ++d)
+                        {
+                            v[d] = (solid.Cell0DCoordinates(d, P) +
+                              solid.Cell0DCoordinates(d, Q) +
+                              solid.Cell0DCoordinates(d, R)) / 3.0;
+                        }
+                        if(v[0] == solid.Cell0DCoordinates(0, ctr0D) &&
+                            v[1] == solid.Cell0DCoordinates(1, ctr0D) &&
+                            v[2] == solid.Cell0DCoordinates(2, ctr0D))
+                        {
+                            solid.Cell2D_frag[j](k + 1, h + 2) = ctr0D;
+                            break;
+                        }
+                    }
+                    
+                }
+            }
+        }
+        ctr0D++;
     }
 
+    for (unsigned int i = 0; i < 1; ++i)
+    {
+        for(unsigned int j = 1; j <= 2*b - 1; j += 2)
+        {
+            for(unsigned int k = 0; k <= j; ++k)
+            {
+                solid.Cell1DId.push_back(ctr1D);
+                solid.Cell1DExtrema(0, ctr1D) = solid.Cell2D_frag[i](j, k);
+                solid.Cell1DExtrema(1, ctr1D) = solid.Cell2D_frag[i](j, k + 1);
+                ctr1D++;
+            }
+            
+            for(unsigned int k = 1; k <= j; k += 2)
+            {
+                solid.Cell1DId.push_back(ctr1D);
+                solid.Cell1DExtrema(0, ctr1D) = solid.Cell2D_frag[i](j, k);
+                solid.Cell1DExtrema(1, ctr1D) = solid.Cell2D_frag[i](j - 1, k - 1);
+                ctr1D++;
+
+                solid.Cell1DId.push_back(ctr1D);
+                solid.Cell1DExtrema(0, ctr1D) = solid.Cell2D_frag[i](j, k);
+                solid.Cell1DExtrema(1, ctr1D) = solid.Cell2D_frag[i](j + 1, k - 1);
+                ctr1D++;
+
+                solid.Cell1DId.push_back(ctr1D);
+                solid.Cell1DExtrema(0, ctr1D) = solid.Cell2D_frag[i](j, k);
+                solid.Cell1DExtrema(1, ctr1D) = solid.Cell2D_frag[i](j + 1, k + 1);
+                ctr1D++;
+            }
+
+            for(unsigned int k = 2; k <= j - 1; k += 2)
+            {
+                solid.Cell1DId.push_back(ctr1D);
+                solid.Cell1DExtrema(0, ctr1D) = solid.Cell2D_frag[i](j, k);
+                solid.Cell1DExtrema(1, ctr1D) = solid.Cell2D_frag[i](j - 1, k);
+                ctr1D++;
+
+                solid.Cell1DId.push_back(ctr1D);
+                solid.Cell1DExtrema(0, ctr1D) = solid.Cell2D_frag[i](j, k);
+                solid.Cell1DExtrema(1, ctr1D) = solid.Cell2D_frag[i](j + 1, k);
+                ctr1D++;
+                
+                solid.Cell1DId.push_back(ctr1D);
+                solid.Cell1DExtrema(0, ctr1D) = solid.Cell2D_frag[i](j, k);
+                solid.Cell1DExtrema(1, ctr1D) = solid.Cell2D_frag[i](j - 1, k - 2);
+                ctr1D++;
+            } 
+        }
+        for(unsigned int k = 1; k <= 2*b - 1; k += 2)
+        {
+            solid.Cell1DId.push_back(ctr1D);
+            solid.Cell1DExtrema(0, ctr1D) = solid.Cell2D_frag[i](2*b - 1, k);
+            solid.Cell1DExtrema(1, ctr1D) = solid.Cell2D_frag[i](2*b, k);
+            ctr1D++;
+        }
+
+        for(unsigned int j = 1; j < 2*b - 1; j += 2) // Triangolazione dei baricentri aggiunta dopo 
+        {
+            for(unsigned int k = 1; k <= j; ++k)
+            {
+                solid.Cell1DId.push_back(ctr1D);
+                solid.Cell1DExtrema(0, ctr1D) = solid.Cell2D_frag[i](j, k);
+                solid.Cell1DExtrema(1, ctr1D) = solid.Cell2D_frag[i](j + 2, k + 1);
+                ctr1D++;
+            }
+        }
+    }
+    
+    //solid.NumCell1D = ctr1D; // Da fare per far funzionare il print del txt e per l'esportazione dei punti
     solid.NumCell0D = ctr0D; 
     solid.Cell0DCoordinates.conservativeResize(3, solid.NumCell0D);
 }
@@ -1107,6 +1209,7 @@ unsigned int find_edge(unsigned int P, unsigned int Q, GeodeticSolid& solid)
         cerr << "Edge not found between vertices " << P << " and " << Q << endl;
         return edge_id; // Return -1 to indicate not found
     }
+
     return edge_id;
 }
 

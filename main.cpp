@@ -11,7 +11,7 @@ int main()
 {
     GeodeticSolid solid = build_polygon_c1(3, 5, 0, 1);
 
-    triangulation_c2(5, 5, solid);
+    triangulation_c2(6, 5, solid); // b, q, solid
 
     Gedim::UCDUtilities utilities;
     {
