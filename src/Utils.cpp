@@ -49,6 +49,14 @@ void unit_sphere_projection(double& x, double& y, double& z)
     }
 }
 
+void GeodeticSolid_projection(GeodeticSolid& solid)
+{
+    for (unsigned int i = 0; i < solid.NumCell0D; ++i)
+    {
+        unit_sphere_projection(solid.Cell0DCoordinates(0, i), solid.Cell0DCoordinates(1, i), solid.Cell0DCoordinates(2, i));
+    }
+}
+
 void print_GeodeticSolid(GeodeticSolid& solid)
 {
     //Cell0D
@@ -191,6 +199,68 @@ void print_GeodeticSolid(GeodeticSolid& solid)
     Cell3D << std::endl;
     Cell3D.close();
    
+}
+
+unsigned int find_edge(unsigned int P, unsigned int Q, GeodeticSolid& solid)
+{
+    unsigned int edge_id = -1;
+    for (unsigned int i = 0; i < solid.NumCell1D; ++i)
+    {
+        if ((solid.Cell1DExtrema(0, i) == P && solid.Cell1DExtrema(1, i) == Q) ||
+            (solid.Cell1DExtrema(0, i) == Q && solid.Cell1DExtrema(1, i) == P))
+        {
+            edge_id = i;
+            break;
+        }
+    }
+    if (edge_id == -1)
+    {
+        cerr << "Edge not found between vertices " << P << " and " << Q << endl;
+        return edge_id; // Return -1 to indicate not found
+    }
+
+    return edge_id;
+}
+
+bool check_ordination(GeodeticSolid& solid)
+{
+    if(solid.NumCell2D == 0)
+    {
+        cerr << "No faces to check." << endl;
+        return false;
+    }
+
+    for(unsigned int i = 0; i < solid.NumCell2D; ++i)
+    {
+        
+        unsigned int E = solid.Cell2DNumEdges[i];
+        for(unsigned int e = 0; e < E; ++e)
+        {
+            unsigned int l1 = solid.Cell2DEdges[i][e];
+            unsigned int l2 = solid.Cell2DEdges[i][(e + 1) % E];
+
+            unsigned int e11 = solid.Cell1DExtrema(0, l1);
+            unsigned int e12 = solid.Cell1DExtrema(1, l1);
+            unsigned int e21 = solid.Cell1DExtrema(0, l2);
+            unsigned int e22 = solid.Cell1DExtrema(1, l2);
+            
+            if(e11 != e21 && e11 != e22 &&
+               e12 != e21 && e12 != e22)
+            {
+                cerr << "Edges " << l1 << " and " << l2 << " are not ordered correctly in face " << i << endl;
+                return false;
+            }
+
+            unsigned int v1 = solid.Cell2DVertices[i][e];
+            if(v1 != e11 && v1 != e12)
+            {
+                cerr << "Vertex " << v1 << " is not stored correctly in face " << i << endl;
+                return false;
+            }
+        }
+    }
+    cout << "For every face edges and vertices are correctly stored." << endl;
+    return true;
 }
 
 GeodeticSolid build_tetrahedron()
@@ -1408,32 +1478,85 @@ GeodeticSolid dualize(GeodeticSolid& s)
     solid.Cell0DId.resize(solid.NumCell0D);
     solid.Cell1DId.resize(solid.NumCell1D);
     solid.Cell2DId.resize(solid.NumCell2D);
-    
-    return solid
-}
+    solid.Cell0DCoordinates.resize(3, solid.NumCell0D);
+    solid.Cell1DExtrema.resize(2, solid.NumCell1D);
+    solid.Cell2DVertices.resize(solid.NumCell2D);
+    solid.Cell2DEdges.resize(solid.NumCell2D);
+    solid.Cell2DNumVertices.resize(solid.NumCell2D);
+    solid.Cell2DNumEdges.resize(solid.NumCell2D);
 
-unsigned int find_edge(unsigned int P, unsigned int Q, GeodeticSolid& solid)
-{
-    unsigned int edge_id = -1;
-    for (unsigned int i = 0; i < solid.NumCell1D; ++i)
+    unsigned int P, Q, R;
+    unsigned int ctr1D = 0;
+    unsigned int edge_id;
+    vector<unsigned int> v = {};
+
+    for (unsigned int i = 0; i < solid.NumCell0D; ++i)
     {
-        if ((solid.Cell1DExtrema(0, i) == P && solid.Cell1DExtrema(1, i) == Q) ||
-            (solid.Cell1DExtrema(0, i) == Q && solid.Cell1DExtrema(1, i) == P))
+        solid.Cell0DId[i] = i;
+        P = s.Cell2DVertices[i][0];
+        Q = s.Cell2DVertices[i][1];
+        R = s.Cell2DVertices[i][2];
+
+        for (unsigned int j = 0; j < 3; ++j)
         {
-            edge_id = i;
-            break;
+            solid.Cell0DCoordinates(j, i) = (s.Cell0DCoordinates(j, P) +
+                                            s.Cell0DCoordinates(j, Q) +
+                                            s.Cell0DCoordinates(j, R)) / 3.0;
         }
     }
-    if (edge_id == -1)
+
+    
+    for (unsigned int i = 0; i < s.NumCell2D; ++i)
     {
-        cerr << "Edge not found between vertices " << P << " and " << Q << endl;
-        return edge_id; // Return -1 to indicate not found
+        for (unsigned int j = i + 1; j < s.NumCell2D; ++j)
+        {
+            if (s.Cell2DEdges[i][0] == s.Cell2DEdges[j][0] ||
+                s.Cell2DEdges[i][0] == s.Cell2DEdges[j][1] ||
+                s.Cell2DEdges[i][0] == s.Cell2DEdges[j][2] ||
+                s.Cell2DEdges[i][1] == s.Cell2DEdges[j][0] ||
+                s.Cell2DEdges[i][1] == s.Cell2DEdges[j][1] ||
+                s.Cell2DEdges[i][1] == s.Cell2DEdges[j][2] ||
+                s.Cell2DEdges[i][2] == s.Cell2DEdges[j][0] ||
+                s.Cell2DEdges[i][2] == s.Cell2DEdges[j][1] ||
+                s.Cell2DEdges[i][2] == s.Cell2DEdges[j][2])
+            {
+                solid.Cell1DId[ctr1D] = ctr1D;
+                solid.Cell1DExtrema(0, ctr1D) = i;
+                solid.Cell1DExtrema(1, ctr1D) = j;
+                ctr1D++;
+            }
+        }
     }
 
-    return edge_id;
+    for (unsigned int i = 0; i < s.NumCell0D; ++i)
+    {
+        for (unsigned int j = 0; j < s.NumCell2D; ++j)
+        {
+            if (s.Cell2DVertices[j][0] == i || s.Cell2DVertices[j][1] == i || s.Cell2DVertices[j][2] == i)
+            {
+                v.push_back(j);
+            }
+        }
+        solid.Cell2DId[i] = i;
+        solid.Cell2DVertices[i] = v;
+        solid.Cell2DEdges[i].clear();
+        solid.Cell2DNumVertices[i] = v.size();
+        solid.Cell2DNumEdges[i] = v.size();
+        for (unsigned int k = 0; k < v.size(); ++k)
+        {
+            unsigned int edge_id = find_edge(s.Cell2DVertices[v[k]][0], s.Cell2DVertices[v[k]][1], s);
+            solid.Cell2DEdges[i].push_back(edge_id);
+        }
+        v.clear();
+    }
+
+    GeodeticSolid_projection(solid);
+    fill_Cell3D(solid);
+    
+    return solid;
 }
 
-GeodeticSolid build_polygon_c1(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
+GeodeticSolid build_geodetic_polygon_c1(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
 {
     GeodeticSolid solid;
 
@@ -1479,55 +1602,92 @@ GeodeticSolid build_polygon_c1(unsigned int p, unsigned int q, unsigned int b, u
     return solid;    
 }
 
-bool check_ordination(GeodeticSolid& solid)
+GeodeticSolid build_geodetic_polygon_c2(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
 {
-    if(solid.NumCell2D == 0)
+    GeodeticSolid solid;
+
+    if (p != 3)
     {
-        cerr << "No faces to check." << endl;
-        return false;
+        cerr << "Polyhedron does not belong to class 2." << endl;
+        return solid;
+    }
+    if (q != 3 && q != 4 && q != 5)
+    {
+        cerr << "Polyhedron does not belong to class 2." << endl;
+        return solid;
+    }
+    if (b != c)
+    {
+        cerr << "Polyhedron does not belong to class 2." << endl;
+        return solid;
+    }
+    if (q == 3) 
+    {
+        solid = build_tetrahedron();
+    }
+    else if (q == 4)
+    {
+        solid = build_octahedron();
+    }
+    else if (q == 5)
+    {
+        solid = build_icosahedron();
     }
 
-    for(unsigned int i = 0; i < solid.NumCell2D; ++i)
-    {
-        
-        unsigned int E = solid.Cell2DNumEdges[i];
-        for(unsigned int e = 0; e < E; ++e)
-        {
-            unsigned int l1 = solid.Cell2DEdges[i][e];
-            unsigned int l2 = solid.Cell2DEdges[i][(e + 1) % E];
+    triangulation_c2(b, q, solid); 
+    GeodeticSolid_projection(solid); 
+    print_GeodeticSolid(solid);
 
-            unsigned int e11 = solid.Cell1DExtrema(0, l1);
-            unsigned int e12 = solid.Cell1DExtrema(1, l1);
-            unsigned int e21 = solid.Cell1DExtrema(0, l2);
-            unsigned int e22 = solid.Cell1DExtrema(1, l2);
-            
-            if(e11 != e21 && e11 != e22 &&
-               e12 != e21 && e12 != e22)
-            {
-                cerr << "Edges " << l1 << " and " << l2 << " are not ordered correctly in face " << i << endl;
-                return false;
-            }
-
-            unsigned int v1 = solid.Cell2DVertices[i][e];
-            if(v1 != e11 && v1 != e12)
-            {
-                cerr << "Vertex " << v1 << " is not stored correctly in face " << i << endl;
-                return false;
-            }
-        }
-    }
-    cout << "For every face edges and vertices are correctly stored." << endl;
-    return true;
+    return solid;    
 }
 
-void GeodeticSolid_projection(GeodeticSolid& solid)
+GeodeticSolid build_goldberg_polyhedron_c1(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
 {
-    for (unsigned int i = 0; i < solid.NumCell0D; ++i)
+    GeodeticSolid geodetic_solid;
+    GeodeticSolid goldberg_solid;
+
+    if (q != 3)
     {
-        unit_sphere_projection(solid.Cell0DCoordinates(0, i), solid.Cell0DCoordinates(1, i), solid.Cell0DCoordinates(2, i));
+        cerr << "Polyhedron does not belong to class 1." << endl;
     }
+    if (p != 3 && p != 4 && p != 5)
+    {
+        cerr << "Polyhedron does not belong to class 1." << endl;
+    }
+
+    unsigned int p_new = q;
+    unsigned int q_new = p;
+
+    geodetic_solid = build_geodetic_polygon_c1(p_new, q_new, b, c);
+    goldberg_solid = dualize(geodetic_solid);
+    print_GeodeticSolid(goldberg_solid);
+
+    return goldberg_solid;
 }
 
+GeodeticSolid build_goldberg_polyhedron_c2(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
+{
+    GeodeticSolid geodetic_solid;
+    GeodeticSolid goldberg_solid;
+
+    if (q != 3)
+    {
+        cerr << "Polyhedron does not belong to class 2." << endl;
+    }
+    if (p != 3 && p != 4 && p != 5)
+    {
+        cerr << "Polyhedron does not belong to class 2." << endl;
+    }
+
+    unsigned int p_new = q;
+    unsigned int q_new = p;
+
+    geodetic_solid = build_geodetic_polygon_c2(p_new, q_new, b, c);
+    goldberg_solid = dualize(geodetic_solid);
+    print_GeodeticSolid(goldberg_solid);
+
+    return goldberg_solid;
+}
 
 
 }// namespace GeodeticLibrary
