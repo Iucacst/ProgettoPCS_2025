@@ -4,8 +4,9 @@
 #include <sstream>
 #include <cmath>
 #include <vector>
-using std::cerr;
-using std::vector;
+#include <queue>
+
+using namespace std;
 
 namespace GeodeticLibrary
 {
@@ -263,6 +264,21 @@ bool check_ordination(GeodeticSolid& solid)
     return true;
 }
 
+double find_distance(GeodeticSolid& solid, unsigned int P, unsigned int Q)
+{
+    if (P >= solid.NumCell0D || Q >= solid.NumCell0D || P < 0 || Q < 0)
+    {
+        cerr << "Error: Vertex index out of bounds." << endl;
+        return -1.0; 
+    }
+
+    double dx = solid.Cell0DCoordinates(0, P) - solid.Cell0DCoordinates(0, Q);
+    double dy = solid.Cell0DCoordinates(1, P) - solid.Cell0DCoordinates(1, Q);
+    double dz = solid.Cell0DCoordinates(2, P) - solid.Cell0DCoordinates(2, Q);
+
+    return sqrt(dx*dx + dy*dy + dz*dz);
+}
+
 GeodeticSolid build_tetrahedron()
 {
     GeodeticSolid solid;
@@ -351,6 +367,9 @@ GeodeticSolid build_tetrahedron()
 
     //Cell3D
     fill_Cell3D(solid);
+
+    solid.vertices_short_path.resize(solid.NumCell0D);
+    solid.edges_short_path.resize(solid.NumCell1D);
 
     return solid;
 }
@@ -485,6 +504,9 @@ GeodeticSolid build_octahedron()
 
     //Cell3D
     fill_Cell3D(solid);
+
+    solid.vertices_short_path.resize(solid.NumCell0D);
+    solid.edges_short_path.resize(solid.NumCell1D);
 
     return solid;
 }
@@ -633,6 +655,9 @@ GeodeticSolid build_icosahedron()
 
     //Cell3D
     fill_Cell3D(solid);
+
+    solid.vertices_short_path.resize(solid.NumCell0D);
+    solid.edges_short_path.resize(solid.NumCell1D);
 
     return solid;
 } 
@@ -930,6 +955,9 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
         solid.NumCell2D = ctr2D;
 
         fill_Cell3D(solid);
+
+        solid.vertices_short_path.resize(solid.NumCell0D);
+        solid.edges_short_path.resize(solid.NumCell1D);
     }
 }
 
@@ -1465,6 +1493,92 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
     // Da fare per far funzionare il print del txt e per l'esportazione dei punti
     solid.NumCell2D = ctr2D;
     fill_Cell3D(solid);
+
+    solid.vertices_short_path.resize(solid.NumCell0D);
+    solid.edges_short_path.resize(solid.NumCell1D);
+}
+
+void shortest_path(unsigned int S, unsigned int V, GeodeticSolid& solid)
+{
+    if(S >= solid.NumCell0D || V >= solid.NumCell0D || S < 0 || V < 0)
+    {
+        cerr << "Invalid vertex indices." << endl;
+        return;
+    }
+    if (S == V)
+    {
+        cout << S << " and " << V << " are the same vertex" << endl;
+        return;
+    }
+
+    //Dijkstra's algorithm
+    vector<double> dist(solid.NumCell0D, 100.0);
+    vector<unsigned int> prev(solid.NumCell0D, -1);
+    vector<bool> visited(solid.NumCell0D, false);
+
+    unsigned int v = -1;
+    unsigned int u = -1; 
+    double weight = 1.0;
+
+    dist[S] = 0.0;
+    priority_queue<pair<double, unsigned int>, vector<pair<double, unsigned int>>, greater<pair<double, unsigned int>>> pq;
+    pq.push(make_pair(0.0, S));
+    while (!pq.empty())
+    {
+        u = pq.top().second;
+        pq.pop();
+
+        if (visited[u]) continue;
+        visited[u] = true;
+
+        for (unsigned int i = 0; i < solid.NumCell1D; ++i)
+        {
+            if (solid.Cell1DExtrema(0, i) == u || solid.Cell1DExtrema(1, i) == u)
+            {
+                if(solid.Cell1DExtrema(0, i) == u)
+                {
+                    v = solid.Cell1DExtrema(1, i);
+                }
+                else
+                {
+                    v = solid.Cell1DExtrema(0, i);
+                }
+
+                weight = find_distance(solid, u, v);
+
+                if (dist[u] + weight < dist[v])
+                {
+                    dist[v] = dist[u] + weight;
+                    prev[v] = u;
+                    pq.push(make_pair(dist[v], v));
+                }
+            }
+        }
+    }
+
+    unsigned int id = -1;
+    double path_length = 0.0;
+    vector<unsigned int> vertices_path;
+
+    for (unsigned int i = V; i != -1; i = prev[i])
+    {
+        vertices_path.push_back(i);
+        solid.vertices_short_path[i] = 1.0;
+    }
+
+    for (unsigned int i = 0; i < vertices_path.size() - 1; ++i)
+    {
+        unsigned int P = vertices_path[i];
+        unsigned int Q = vertices_path[i + 1];
+        id = find_edge(P, Q, solid);
+        path_length += find_distance(solid, P, Q);
+        solid.edges_short_path[id] = 1.0;
+    }
+
+    cout << "Path length: " << vertices_path.size() - 1 << endl;
+    cout << "Total distance: " << path_length << endl;
+
+    return;
 }
 
 GeodeticSolid dualize(GeodeticSolid& s)
@@ -1552,6 +1666,9 @@ GeodeticSolid dualize(GeodeticSolid& s)
 
     GeodeticSolid_projection(solid);
     fill_Cell3D(solid);
+
+    solid.vertices_short_path.resize(solid.NumCell0D);
+    solid.edges_short_path.resize(solid.NumCell1D);
     
     return solid;
 }
@@ -1689,5 +1806,53 @@ GeodeticSolid build_goldberg_polyhedron_c2(unsigned int p, unsigned int q, unsig
     return goldberg_solid;
 }
 
+void build_UCD(GeodeticSolid& solid)
+{
+    bool flag = false;
+    unsigned int ctr = 0;
+    while (!flag && ctr < solid.NumCell0D)
+    {
+        if (solid.vertices_short_path[ctr] == 1.0)
+        {
+            flag = true;
+        }
+        else
+        {
+            ctr++;
+        }
+    }
+
+    if (!flag)
+    {
+        Gedim::UCDUtilities utilities;
+        {
+            utilities.ExportPoints("./Cell0D.inp", solid.Cell0DCoordinates);
+            utilities.ExportSegments("./Cell1D.inp", solid.Cell0DCoordinates, solid.Cell1DExtrema);
+        }
+    }
+    else
+    {
+        Gedim::UCDProperty<double> vertices_property;
+	    vertices_property.NumComponents = 1;
+	    const double* ptr1 = solid.vertices_short_path.data();
+	    vertices_property.Data = ptr1;
+	    vertices_property.Label = "Visited Nodes";
+	    vector<Gedim::UCDProperty<double>> vertices_properties_UCD = { vertices_property };
+
+        Gedim::UCDProperty<double> edges_property;
+        edges_property.NumComponents = 1;
+        const double* ptr2 = solid.edges_short_path.data();
+        edges_property.Data = ptr2;
+        edges_property.Label = "Visited Edges";
+        vector<Gedim::UCDProperty<double>> edges_properties_UCD = { edges_property };
+
+        Gedim::UCDUtilities utilities;
+        {
+            utilities.ExportPoints("./Cell0D.inp", solid.Cell0DCoordinates, vertices_properties_UCD);
+            utilities.ExportSegments("./Cell1D.inp", solid.Cell0DCoordinates, solid.Cell1DExtrema, vertices_properties_UCD, edges_properties_UCD);
+        }
+    }
+
+}
 
 }// namespace GeodeticLibrary

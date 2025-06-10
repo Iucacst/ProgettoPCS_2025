@@ -36,6 +36,9 @@ namespace GeodeticLibrary {
 
 		Eigen::MatrixXi Cell1D_frag = {};
 		vector<Eigen::MatrixXi> Cell2D_frag = {};
+
+		vector<double> vertices_short_path = {};
+		vector<double> edges_short_path = {};
 	};
 }
 
