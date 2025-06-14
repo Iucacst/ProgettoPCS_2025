@@ -1511,7 +1511,6 @@ void shortest_path(unsigned int S, unsigned int V, GeodeticSolid& solid)
         return;
     }
 
-    //Dijkstra's algorithm
     vector<double> dist(solid.NumCell0D, 100.0);
     vector<unsigned int> prev(solid.NumCell0D, -1);
     vector<bool> visited(solid.NumCell0D, false);
@@ -1641,6 +1640,8 @@ GeodeticSolid dualize(GeodeticSolid& s)
             }
         }
     }
+    unsigned int ctr = 0;
+    unsigned int id, pos, pos2 = 0;
 
     for (unsigned int i = 0; i < s.NumCell0D; ++i)
     {
@@ -1648,9 +1649,74 @@ GeodeticSolid dualize(GeodeticSolid& s)
         {
             if (s.Cell2DVertices[j][0] == i || s.Cell2DVertices[j][1] == i || s.Cell2DVertices[j][2] == i)
             {
-                v.push_back(j);
+                ctr++;
             }
         }
+        for(unsigned int j = 0; j < ctr - 1; ++j)
+        {
+            if(j == 0)
+            {
+                for(unsigned int k = 0; k < s.NumCell1D; ++k)
+                {
+                    if(s.Cell1DExtrema(0, k) == i || s.Cell1DExtrema(1, k) == i)
+                    {
+                        id = k;
+                        if(s.Cell1DExtrema(1, k) == i)
+                            pos = s.Cell1DExtrema(0,k);  
+                        else
+                            pos = s.Cell1DExtrema(1,k);                
+                        break;
+                    }
+                }
+            
+                for(unsigned int k = 0; k < s.NumCell2D; ++k)
+                {
+                    if(s.Cell2DEdges[k][0] == id || s.Cell2DEdges[k][1] == id || s.Cell2DEdges[k][2] == id)
+                    {    
+                        v.push_back(k);
+                        break;             
+                    }
+                }
+            }
+            if((s.Cell2DVertices[v[j]][0] == id || s.Cell2DVertices[v[j]][0] == pos) && 
+                (s.Cell2DVertices[v[j]][1] == id || s.Cell2DVertices[v[j]][1] == pos))
+            {
+                pos2 = s.Cell2DVertices[v[j]][2];
+            }
+            else if((s.Cell2DVertices[v[j]][0] == id || s.Cell2DVertices[v[j]][0] == pos) && 
+                (s.Cell2DVertices[v[j]][2] == id || s.Cell2DVertices[v[j]][2] == pos))
+            {
+                pos2 = s.Cell2DVertices[v[j]][1];
+            }
+            else if((s.Cell2DVertices[v[j]][1] == id || s.Cell2DVertices[v[j]][1] == pos) && 
+                (s.Cell2DVertices[v[j]][2] == id || s.Cell2DVertices[v[j]][2] == pos))
+            {
+                pos2 = s.Cell2DVertices[v[j]][0];
+            }
+
+            for(unsigned int k = 0; k < s.NumCell2D; ++k)
+            {
+                if(s.Cell1DExtrema(0, k) == i && s.Cell1DExtrema(1, k) == pos2)
+                {
+                        id = k;
+                        if(s.Cell1DExtrema(1, k) == i)
+                            pos = s.Cell1DExtrema(0,k);  
+                        else
+                            pos = s.Cell1DExtrema(1,k);                
+                        break;
+                }
+            }
+
+            for(unsigned int k = 0; k < s.NumCell2D; ++k)
+            {
+                if((s.Cell2DEdges[k][0] == id || s.Cell2DEdges[k][1] == id || s.Cell2DEdges[k][2] == id) && k != v[j])
+                {    
+                    v.push_back(k);
+                    break;             
+                }
+            }
+        }
+
         solid.Cell2DId[i] = i;
         solid.Cell2DVertices[i] = v;
         solid.Cell2DEdges[i].clear();
@@ -1658,7 +1724,7 @@ GeodeticSolid dualize(GeodeticSolid& s)
         solid.Cell2DNumEdges[i] = v.size();
         for (unsigned int k = 0; k < v.size(); ++k)
         {
-            unsigned int edge_id = find_edge(s.Cell2DVertices[v[k]][0], s.Cell2DVertices[v[k]][1], s);
+            unsigned int edge_id = find_edge(v[k], v[(k + 1) % v.size()], solid);
             solid.Cell2DEdges[i].push_back(edge_id);
         }
         v.clear();
@@ -1673,23 +1739,17 @@ GeodeticSolid dualize(GeodeticSolid& s)
     return solid;
 }
 
-GeodeticSolid build_geodetic_polygon_c1(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
+GeodeticSolid build_geodetic_polyhedron_c1(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
 {
     GeodeticSolid solid;
-
-    if (p != 3)
-    {
-        cerr << "Polyhedron does not belong to class 1." << endl;
-        return solid;
-    }
     if (q != 3 && q != 4 && q != 5)
     {
-        cerr << "Polyhedron does not belong to class 1." << endl;
+        cerr << "Polyhedron not supported" << endl;
         return solid;
     }
     if ((b == 0 && c == 0) || (b != 0 && c != 0))
     {
-        cerr << "Polyhedron does not belong to class 1." << endl;
+        cerr << "Triangulation not supported" << endl;
         return solid;
     }
 
@@ -1716,26 +1776,21 @@ GeodeticSolid build_geodetic_polygon_c1(unsigned int p, unsigned int q, unsigned
     GeodeticSolid_projection(solid); 
     print_GeodeticSolid(solid);
 
+    cout << "Polyhedron created" << endl;
     return solid;    
 }
 
-GeodeticSolid build_geodetic_polygon_c2(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
+GeodeticSolid build_geodetic_polyhedron_c2(unsigned int p, unsigned int q, unsigned int b, unsigned int c)
 {
     GeodeticSolid solid;
-
-    if (p != 3)
-    {
-        cerr << "Polyhedron does not belong to class 2." << endl;
-        return solid;
-    }
     if (q != 3 && q != 4 && q != 5)
     {
-        cerr << "Polyhedron does not belong to class 2." << endl;
+        cerr << "Polyhedron not supported" << endl;
         return solid;
     }
     if (b != c)
     {
-        cerr << "Polyhedron does not belong to class 2." << endl;
+        cerr << "Triangulation not supported" << endl;
         return solid;
     }
     if (q == 3) 
@@ -1755,6 +1810,7 @@ GeodeticSolid build_geodetic_polygon_c2(unsigned int p, unsigned int q, unsigned
     GeodeticSolid_projection(solid); 
     print_GeodeticSolid(solid);
 
+    cout << "Polyhedron created" << endl;
     return solid;    
 }
 
@@ -1763,22 +1819,20 @@ GeodeticSolid build_goldberg_polyhedron_c1(unsigned int p, unsigned int q, unsig
     GeodeticSolid geodetic_solid;
     GeodeticSolid goldberg_solid;
 
-    if (q != 3)
-    {
-        cerr << "Polyhedron does not belong to class 1." << endl;
-    }
     if (p != 3 && p != 4 && p != 5)
     {
-        cerr << "Polyhedron does not belong to class 1." << endl;
+        cerr << "Polyhedron not supported" << endl;
+        return goldberg_solid;
     }
 
     unsigned int p_new = q;
     unsigned int q_new = p;
 
-    geodetic_solid = build_geodetic_polygon_c1(p_new, q_new, b, c);
+    geodetic_solid = build_geodetic_polyhedron_c1(p_new, q_new, b, c);
     goldberg_solid = dualize(geodetic_solid);
     print_GeodeticSolid(goldberg_solid);
 
+    cout << "Polyhedron created" << endl;
     return goldberg_solid;
 }
 
@@ -1787,22 +1841,20 @@ GeodeticSolid build_goldberg_polyhedron_c2(unsigned int p, unsigned int q, unsig
     GeodeticSolid geodetic_solid;
     GeodeticSolid goldberg_solid;
 
-    if (q != 3)
-    {
-        cerr << "Polyhedron does not belong to class 2." << endl;
-    }
     if (p != 3 && p != 4 && p != 5)
     {
-        cerr << "Polyhedron does not belong to class 2." << endl;
+        cerr << "Polyhedron not supported" << endl;
+        return goldberg_solid;
     }
 
     unsigned int p_new = q;
     unsigned int q_new = p;
 
-    geodetic_solid = build_geodetic_polygon_c2(p_new, q_new, b, c);
+    geodetic_solid = build_geodetic_polyhedron_c2(p_new, q_new, b, c);
     goldberg_solid = dualize(geodetic_solid);
     print_GeodeticSolid(goldberg_solid);
 
+    cout << "Polyhedron created" << endl;
     return goldberg_solid;
 }
 
@@ -1852,6 +1904,75 @@ void build_UCD(GeodeticSolid& solid)
             utilities.ExportSegments("./Cell1D.inp", solid.Cell0DCoordinates, solid.Cell1DExtrema, vertices_properties_UCD, edges_properties_UCD);
         }
     }
+
+}
+
+void main_function(vector<unsigned int>& input)
+{
+
+    // p, q, triangolazione, b, c, v1, v2
+    GeodeticSolid solid;
+    unsigned int size = input.size();
+    bool flag = true;
+
+    switch(size)
+    {
+        case 5:
+            if(input[0] == 3)
+            {
+                if(input[2] == 1)
+                    solid = build_geodetic_polyhedron_c1(input[0], input[1], input[3], input[4]);
+                else if(input[2] == 2)
+                    solid = build_geodetic_polyhedron_c2(input[0], input[1], input[3], input[4]);
+                else
+                    cout << "Triangulation type not valid";
+            }
+
+            if (input[1] == 3 && input[0] != 3)
+            {
+                if(input[2] == 1)
+                    solid = build_goldberg_polyhedron_c1(input[0], input[1], input[3], input[4]);
+                else if(input[2] == 2)
+                    solid = build_goldberg_polyhedron_c2(input[0], input[1], input[3], input[4]);
+                else
+                    cout << "Triangulation type not valid";
+            }
+            break;
+        case 7:
+            if(input[0] == 3)           
+            {
+                if(input[2] == 1)
+                    solid = build_geodetic_polyhedron_c1(input[0], input[1], input[3], input[4]);
+                else if(input[2] == 2)
+                    solid = build_geodetic_polyhedron_c2(input[0], input[1], input[3], input[4]);
+                else
+                    cout << "Triangulation type not valid";
+            }
+
+            if (input[1] == 3 && input[0] != 3)
+            {
+                if(input[2] == 1)
+                    solid = build_goldberg_polyhedron_c1(input[0], input[1], input[3], input[4]);
+                else if(input[2] == 2)
+                    solid = build_goldberg_polyhedron_c2(input[0], input[1], input[3], input[4]);
+                else
+                    cout << "Triangulation type not valid";
+            }
+            shortest_path(input[5], input[6], solid);
+            break;
+        default:
+            cout << "Input not valid";
+            flag = false;
+            
+    }
+
+    if(flag)
+    {
+        build_UCD(solid);
+    }
+
+    check_ordination(solid);
+    
 
 }
 

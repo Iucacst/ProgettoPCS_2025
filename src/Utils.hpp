@@ -25,9 +25,10 @@ namespace GeodeticLibrary
 	GeodeticSolid dualize(GeodeticSolid& solid);
 	void shortest_path(unsigned int P, unsigned int Q, GeodeticSolid& solid);
 
-	GeodeticSolid build_geodetic_polygon_c1(unsigned int p, unsigned int q, unsigned int b, unsigned int c);
-	GeodeticSolid build_geodetic_polygon_c2(unsigned int p, unsigned int q, unsigned int b, unsigned int c);
+	GeodeticSolid build_geodetic_polyhedron_c1(unsigned int p, unsigned int q, unsigned int b, unsigned int c);
+	GeodeticSolid build_geodetic_polyhedron_c2(unsigned int p, unsigned int q, unsigned int b, unsigned int c);
 	GeodeticSolid build_goldberg_polyhedron_c1(unsigned int p, unsigned int q, unsigned int b, unsigned int c);
 	GeodeticSolid build_goldberg_polyhedron_c2(unsigned int p, unsigned int q, unsigned int b, unsigned int c);
 	void build_UCD(GeodeticSolid& solid);
+	void main_function(vector<unsigned int>& input);
 }
