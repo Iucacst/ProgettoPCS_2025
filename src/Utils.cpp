@@ -971,7 +971,7 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
     unsigned int ctr1D = 0;
     unsigned int ctr2D = 0;
 
-    solid.Cell0DCoordinates.conservativeResize(3, solid.NumCell0D + solid.NumCell1D*(2*b - 1) + solid.NumCell2D*(3*(b*b)/2 - 3*b/2 + 1));
+    solid.Cell0DCoordinates.conservativeResize(3, solid.NumCell0D + solid.NumCell1D*(2*b - 1) + solid.NumCell2D*(3*(b*b)/2 - 3*b/2 + b));
     solid.Cell1DExtrema.conservativeResize(2, solid.NumCell1D*2*b + solid.NumCell2D*(9*(b*b)/2 + 3*b/2));
     solid.Cell2DVertices.resize(solid.NumCell2D*(3*(b*b) + 3*b));
     solid.Cell2DEdges.resize(solid.NumCell2D*(3*(b*b) + 3*b));
@@ -1602,6 +1602,7 @@ GeodeticSolid dualize(GeodeticSolid& s)
     unsigned int ctr1D = 0;
     unsigned int edge_id;
     vector<unsigned int> v = {};
+    vector<unsigned int> w = {};
 
     for (unsigned int i = 0; i < solid.NumCell0D; ++i)
     {
@@ -1640,88 +1641,88 @@ GeodeticSolid dualize(GeodeticSolid& s)
             }
         }
     }
-    unsigned int ctr = 0;
-    unsigned int id, pos, pos2 = 0;
+
+    unsigned int N = 0;
+    unsigned int current_edge, current_face = -1;
+    Q = 0;
+    R = 0;
 
     for (unsigned int i = 0; i < s.NumCell0D; ++i)
     {
-        for (unsigned int j = 0; j < s.NumCell2D; ++j)
+        N = 0;
+        for (unsigned int k = 0; k < s.NumCell2D; ++k)
         {
-            if (s.Cell2DVertices[j][0] == i || s.Cell2DVertices[j][1] == i || s.Cell2DVertices[j][2] == i)
+            if (s.Cell2DVertices[k][0] == i || 
+                s.Cell2DVertices[k][1] == i || 
+                s.Cell2DVertices[k][2] == i)
             {
-                ctr++;
+                N++;
             }
         }
-        for(unsigned int j = 0; j < ctr - 1; ++j)
+
+        for (unsigned int j = 0; j < s.NumCell1D; ++j)       
         {
-            if(j == 0)
+            if (s.Cell1DExtrema(0, j) == i || s.Cell1DExtrema(1, j) == i)
             {
-                for(unsigned int k = 0; k < s.NumCell1D; ++k)
+                current_edge = j;
+                if (s.Cell1DExtrema(0, j) == i)
                 {
-                    if(s.Cell1DExtrema(0, k) == i || s.Cell1DExtrema(1, k) == i)
-                    {
-                        id = k;
-                        if(s.Cell1DExtrema(1, k) == i)
-                            pos = s.Cell1DExtrema(0,k);  
-                        else
-                            pos = s.Cell1DExtrema(1,k);                
-                        break;
-                    }
-                }
-            
-                for(unsigned int k = 0; k < s.NumCell2D; ++k)
+                    Q = s.Cell1DExtrema(1, j);
+                }        
+                else 
                 {
-                    if(s.Cell2DEdges[k][0] == id || s.Cell2DEdges[k][1] == id || s.Cell2DEdges[k][2] == id)
-                    {    
-                        v.push_back(k);
-                        break;             
-                    }
+                    Q = s.Cell1DExtrema(0, j);
+                }
+                break;
+            }
+        }            
+        for (unsigned int k = 0; k < s.NumCell2D; ++k)
+        {
+            if (s.Cell2DEdges[k][0] == current_edge ||
+                s.Cell2DEdges[k][1] == current_edge || 
+                s.Cell2DEdges[k][2] == current_edge)
+            {  
+                current_face = k;
+                v.push_back(current_face);   
+                break;          
+            }
+        }
+    
+    
+        for(unsigned int j = 1; j < N; ++j)
+        {
+            for (unsigned int h = 0; h < 3; ++h)
+            {
+                if (s.Cell2DVertices[current_face][h] != i && 
+                    s.Cell2DVertices[current_face][h] != Q)
+                {
+                    R = s.Cell2DVertices[current_face][h];
+                    break;
                 }
             }
-            if((s.Cell2DVertices[v[j]][0] == id || s.Cell2DVertices[v[j]][0] == pos) && 
-                (s.Cell2DVertices[v[j]][1] == id || s.Cell2DVertices[v[j]][1] == pos))
-            {
-                pos2 = s.Cell2DVertices[v[j]][2];
-            }
-            else if((s.Cell2DVertices[v[j]][0] == id || s.Cell2DVertices[v[j]][0] == pos) && 
-                (s.Cell2DVertices[v[j]][2] == id || s.Cell2DVertices[v[j]][2] == pos))
-            {
-                pos2 = s.Cell2DVertices[v[j]][1];
-            }
-            else if((s.Cell2DVertices[v[j]][1] == id || s.Cell2DVertices[v[j]][1] == pos) && 
-                (s.Cell2DVertices[v[j]][2] == id || s.Cell2DVertices[v[j]][2] == pos))
-            {
-                pos2 = s.Cell2DVertices[v[j]][0];
-            }
+            current_edge = find_edge(i, R, s);
+            Q = R;
 
             for(unsigned int k = 0; k < s.NumCell2D; ++k)
             {
-                if(s.Cell1DExtrema(0, k) == i && s.Cell1DExtrema(1, k) == pos2)
-                {
-                        id = k;
-                        if(s.Cell1DExtrema(1, k) == i)
-                            pos = s.Cell1DExtrema(0,k);  
-                        else
-                            pos = s.Cell1DExtrema(1,k);                
-                        break;
-                }
-            }
-
-            for(unsigned int k = 0; k < s.NumCell2D; ++k)
-            {
-                if((s.Cell2DEdges[k][0] == id || s.Cell2DEdges[k][1] == id || s.Cell2DEdges[k][2] == id) && k != v[j])
+                if((s.Cell2DEdges[k][0] == current_edge || 
+                    s.Cell2DEdges[k][1] == current_edge || 
+                    s.Cell2DEdges[k][2] == current_edge) && 
+                    k != current_face)
                 {    
-                    v.push_back(k);
+                    current_face = k;
+                    v.push_back(current_face);
                     break;             
                 }
             }
         }
 
         solid.Cell2DId[i] = i;
-        solid.Cell2DVertices[i] = v;
+        solid.Cell2DVertices[i].clear();
         solid.Cell2DEdges[i].clear();
         solid.Cell2DNumVertices[i] = v.size();
         solid.Cell2DNumEdges[i] = v.size();
+        solid.Cell2DVertices[i] = v;
         for (unsigned int k = 0; k < v.size(); ++k)
         {
             unsigned int edge_id = find_edge(v[k], v[(k + 1) % v.size()], solid);
