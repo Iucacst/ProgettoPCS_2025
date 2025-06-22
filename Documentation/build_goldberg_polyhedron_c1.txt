@@ -1,0 +1,16 @@
+@startuml
+title build_goldberg_polyhedron_c1(p, q, b, c)
+
+start
+
+split
+  :p == 3 || p == 4 || p == 5;
+split again
+  :Poliedro non supportato;
+  end
+end split
+:build_geodetic_polyhedron_c1(q, p, b, c);
+:dualize();
+
+stop
+@enduml

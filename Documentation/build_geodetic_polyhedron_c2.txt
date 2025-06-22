@@ -1,0 +1,29 @@
+@startuml
+title void build_geodetic_polyhedron_c2(p, q, b, c)
+
+start
+
+:Inizializzazione Solido Platonico;
+
+split
+  :q == 3;
+  :build_tetrahedron();
+split again
+  :q == 4;
+  :build_octahedron();
+split again
+  :q == 5;
+  :build_icosahedron();
+split again
+  :Poliedro non supportato;
+  end
+end split
+:triangulation_c2(b);
+note right
+    Prevede b == c, 
+    dunque il parametro è unico
+end note
+:GeodeticSolid_projection();
+
+stop
+@enduml

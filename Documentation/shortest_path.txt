@@ -1,0 +1,23 @@
+@startuml
+title shortest_path(S, V)
+
+start
+
+split
+  :S != V;
+split again
+  :S == V;
+  end
+end split
+:Algoritmo di Dijkstra;
+
+note right
+    Costruzione del vettore dei vertici visitati
+end note
+
+:Assegnazione della proprietà short_path = 1.0 ai vertici visitati;
+:Ricostruzione degli spigoli visitati;
+:Calcolo della lunghezza totale del cammino;
+
+stop
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+title GeodeticSolid_projection()
+
+start
+ :Per ogni vertice del solido;
+ note right
+    x, y, z sono le coordinate del punto P
+ end note
+ 
+ :||P|| = sqrt(x² + y² + z²);
+ split
+ :||P|| != 0;
+  split again
+    :||P|| == 0;
+    end
+ end split
+ split
+    :x' = x/||P||;
+ split again
+    :y' = y/||P||;
+ split again
+    :z' = z/||P||;
+ end split
+ :Aggiornamento delle coordinate;
+stop
+@enduml
