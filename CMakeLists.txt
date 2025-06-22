@@ -1,59 +1,68 @@
 cmake_minimum_required(VERSION 3.9)
+project(GeodeticSolid VERSION 1.0.0 LANGUAGES CXX C)
 
-project(GeodeticSolid LANGUAGES CXX C VERSION 1.0.0)
-
-# Set C++ Standard
-################################################################################
+# Set C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# IMPOSE WARNINGS ON DEBUG
+# Compiler warnings
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -pedantic-errors")
-# IMPOSE CXX FLAGS FOR WINDOWS
-if (WIN32)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj")
-endif (WIN32)
+if(WIN32)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj")
+endif()
 
-# Add dependencies
-################################################################################
-
-## Eigen3
+# Dependencies
 find_package(Eigen3 CONFIG REQUIRED)
-list(APPEND GeodeticSolid_LINKED_LIBRARIES PUBLIC Eigen3::Eigen)
-
-## Threads
 find_package(Threads REQUIRED)
-list(APPEND GeodeticSolid_LINKED_LIBRARIES PRIVATE Threads::Threads)
-
-## GTest
 find_package(GTest REQUIRED)
 
-list(APPEND GeodeticSolid_LINKED_LIBRARIES PRIVATE GTest::gtest)
-list(APPEND GeodeticSolid_LINKED_LIBRARIES PRIVATE GTest::gtest_main)
-list(APPEND GeodeticSolid_LINKED_LIBRARIES PRIVATE GTest::gmock)
-list(APPEND GeodeticSolid_LINKED_LIBRARIES PRIVATE GTest::gmock_main)
+# Collect linked libraries
+set(GEODETIC_LIBS Eigen3::Eigen Threads::Threads GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 
-# Insert Sources
-################################################################################
-add_subdirectory(src)
-
-list(APPEND GeodeticSolid_SOURCES ${GeodeticSolid_sources})
-list(APPEND GeodeticSolid_HEADERS ${GeodeticSolid_headers})
-list(APPEND GeodeticSolid_INCLUDE ${GeodeticSolid_includes})
-
+# Add subdirectories
 add_subdirectory(ExportParaview)
+add_subdirectory(src)
+add_subdirectory(src_test)
 
-list(APPEND GeodeticSolid_SOURCES ${src_paraview_sources})
-list(APPEND GeodeticSolid_HEADERS ${src_paraview_headers})
-list(APPEND GeodeticSolid_INCLUDE ${src_paraview_includes})
-
-# Create executable
-################################################################################
+# -- Main executable ----------------------------------------------------------------
 add_executable(${PROJECT_NAME}
-      main.cpp
-      ${GeodeticSolid_SOURCES}
-      ${GeodeticSolid_HEADERS})
+  main.cpp
+)
+# Attach sources & headers
+target_sources(${PROJECT_NAME} PRIVATE
+  ${GeodeticSolid_sources}
+  ${GeodeticSolid_headers}
+  ${src_paraview_sources}
+)
+# Include paths
+target_include_directories(${PROJECT_NAME} PRIVATE
+  ${GeodeticSolid_includes}
+  ${src_paraview_includes}
+)
+# Link libraries
+target_link_libraries(${PROJECT_NAME} PRIVATE ${GEODETIC_LIBS})
 
-target_link_libraries(${PROJECT_NAME} ${GeodeticSolid_LINKED_LIBRARIES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${GeodeticSolid_INCLUDE})
+# -- Test executable ----------------------------------------------------------------
+add_executable(${PROJECT_NAME}_test
+  main_test.cpp
+)
+# Attach test sources & headers
+target_sources(${PROJECT_NAME}_test PRIVATE
+  ${GeodeticSolid_sources}
+  ${GeodeticSolid_headers}
+  ${src_paraview_sources}
+  ${src_test_sources}
+  ${src_test_headers}
+)
+# Include paths for tests
+target_include_directories(${PROJECT_NAME}_test PRIVATE
+  ${GeodeticSolid_includes}
+  ${src_paraview_includes}
+  ${src_test_includes}
+)
+# Link libraries for tests
+target_link_libraries(${PROJECT_NAME}_test PRIVATE ${GEODETIC_LIBS})
+
+# PIC option
 target_compile_options(${PROJECT_NAME} PUBLIC -fPIC)
+target_compile_options(${PROJECT_NAME}_test PUBLIC -fPIC)

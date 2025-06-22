@@ -61,13 +61,13 @@ void GeodeticSolid_projection(GeodeticSolid& solid)
 void print_GeodeticSolid(GeodeticSolid& solid)
 {
     //Cell0D
-    std::ofstream Cell0D("Cell0D.txt");
+    ofstream Cell0D("Cell0D.txt");
     if (!Cell0D.is_open())
     {
-        std::cerr << "Errore: impossibile aprire il file." << std::endl;
+        cerr << "Errore: impossibile aprire il file." << endl;
     }
 
-    Cell0D << "Id; Coordinates" << std::endl;
+    Cell0D << "Id; Coordinates" << endl;
     for (unsigned int i = 0; i < solid.NumCell0D; ++i)
     {
         Cell0D << solid.Cell0DId[i] << "; (";
@@ -82,18 +82,18 @@ void print_GeodeticSolid(GeodeticSolid& solid)
                 Cell0D << solid.Cell0DCoordinates(j, i) << ", ";
             }
         }
-        Cell0D << ")" << std::endl;
+        Cell0D << ")" << endl;
     }
     Cell0D.close();
 
     //Cell1D
-    std::ofstream Cell1D("Cell1D.txt");
+    ofstream Cell1D("Cell1D.txt");
     if (!Cell1D.is_open())
     {
-        std::cerr << "Errore: impossibile aprire il file." << std::endl;
+        cerr << "Errore: impossibile aprire il file." << endl;
     }
 
-    Cell1D << "Id; Extrema" << std::endl;
+    Cell1D << "Id; Extrema" << endl;
     for (unsigned int i = 0; i < solid.NumCell1D; ++i)
     {
         Cell1D << solid.Cell1DId[i] << "; {";
@@ -108,18 +108,18 @@ void print_GeodeticSolid(GeodeticSolid& solid)
                 Cell1D << solid.Cell1DExtrema(j, i);
             }
         }
-        Cell1D << "}" << std::endl;
+        Cell1D << "}" << endl;
     }
     Cell1D.close();
 
     //Cell2D
-    std::ofstream Cell2D("Cell2D.txt");
+    ofstream Cell2D("Cell2D.txt");
     if (!Cell2D.is_open())
     {
-        std::cerr << "Errore: impossibile aprire il file." << std::endl;
+        cerr << "Errore: impossibile aprire il file." << endl;
     }
 
-    Cell2D << "Id; Vertices; Edges" << std::endl;
+    Cell2D << "Id; Vertices; Edges" << endl;
     for (unsigned int i = 0; i < solid.NumCell2D; ++i)
     {
         Cell2D << solid.Cell2DId[i] << "; {";
@@ -146,15 +146,15 @@ void print_GeodeticSolid(GeodeticSolid& solid)
                 Cell2D << solid.Cell2DEdges[i][j] << ", ";
             }
         }
-        Cell2D << "}" << std::endl;
+        Cell2D << "}" << endl;
     }
     Cell2D.close();
 
     //Cell3D
-    std::ofstream Cell3D("Cell3D.txt");
+    ofstream Cell3D("Cell3D.txt");
     if (!Cell3D.is_open())
     {
-        std::cerr << "Errore: impossibile aprire il file." << std::endl;
+        cerr << "Errore: impossibile aprire il file." << endl;
     }
 
     Cell3D << "Cell0DId: ";
@@ -169,7 +169,7 @@ void print_GeodeticSolid(GeodeticSolid& solid)
             Cell3D << solid.Cell3DVertices[j] << ", ";
         }
     }
-    Cell3D << std::endl;
+    Cell3D << endl;
 
     Cell3D << "Cell1DId: ";
     for (unsigned int j = 0; j < solid.Cell3DNumEdges; ++j)
@@ -183,7 +183,7 @@ void print_GeodeticSolid(GeodeticSolid& solid)
             Cell3D << solid.Cell3DEdges[j] << ", ";
         }
     }
-    Cell3D << std::endl;
+    Cell3D << endl;
 
     Cell3D << "Cell2DId: ";
     for (unsigned int j = 0; j < solid.Cell3DNumFaces; ++j)
@@ -197,7 +197,7 @@ void print_GeodeticSolid(GeodeticSolid& solid)
             Cell3D << solid.Cell3DFaces[j] << ", ";
         }
     }
-    Cell3D << std::endl;
+    Cell3D << endl;
     Cell3D.close();
    
 }
@@ -800,7 +800,7 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
             solid.Cell2D_frag[i](b,0) = Q;
             solid.Cell2D_frag[i](b,b) = R;
 
-            if(solid.Cell1D_frag(PQ, 0) == P && solid.Cell1D_frag(PQ, b) == Q)
+            if(solid.Cell1D_frag(PQ, 0) == P && solid.Cell1D_frag(PQ, b) == Q) // Check in what direction the edges are "oriented"
             {
                 for (unsigned int j = 1; j <= b-1; ++j)
                 {
@@ -858,7 +858,7 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
                     x[k] = solid.Cell0DCoordinates(k, P) + w[k]*j;
                     y[k] = solid.Cell0DCoordinates(k, P) + v[k]*j;
 
-                    z[k] = (y[k] - x[k]) / j;
+                    z[k] = (y[k] - x[k]) / j; // difference vector to build the interior points
                 }
 
                 for (unsigned int k = 1; k <= j-1; ++k)
@@ -877,11 +877,11 @@ void triangulation_c1(const unsigned int b, unsigned int q, GeodeticSolid& solid
 
             for (unsigned int j = 1; j <= b-1; ++j)
             {
-                for(unsigned int k = 0; k < j; ++k)
+                for(unsigned int k = 0; k < j; ++k) 
                 {
                     solid.Cell1DId.push_back(ctr1D);
                     solid.Cell1DExtrema(0, ctr1D) = solid.Cell2D_frag[i](j, k);
-                    solid.Cell1DExtrema(1, ctr1D) = solid.Cell2D_frag[i](j, k + 1);
+                    solid.Cell1DExtrema(1, ctr1D) = solid.Cell2D_frag[i](j, k + 1); 
                     ctr1D++;                   
                 }
                 
@@ -971,8 +971,8 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
     unsigned int ctr1D = 0;
     unsigned int ctr2D = 0;
 
-    solid.Cell0DCoordinates.conservativeResize(3, solid.NumCell0D + solid.NumCell1D*(2*b - 1) + solid.NumCell2D*(3*(b*b)/2 - 3*b/2 + b));
-    solid.Cell1DExtrema.conservativeResize(2, solid.NumCell1D*2*b + solid.NumCell2D*(9*(b*b)/2 + 3*b/2));
+    solid.Cell0DCoordinates.conservativeResize(3, solid.NumCell0D + solid.NumCell1D*(2*b - 1) + solid.NumCell2D*(3*(b*b)/2 - 3*b/2 + b) + 20);
+    solid.Cell1DExtrema.conservativeResize(2, solid.NumCell1D*2*b + solid.NumCell2D*(9*(b*b)/2 + 3*b/2) + 20);
     solid.Cell2DVertices.resize(solid.NumCell2D*(3*(b*b) + 3*b));
     solid.Cell2DEdges.resize(solid.NumCell2D*(3*(b*b) + 3*b));
     solid.Cell2DId.clear();
@@ -1174,7 +1174,7 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
                                                 solid_tmp.Cell0DCoordinates(k, R)) / 3.0;
         }
 
-        for (unsigned int j = 0; j < solid.NumCell2D; ++j)
+        for (unsigned int j = 0; j < solid.NumCell2D; ++j) //Fill Cell2D with baricenter of the t1 faces
         {
             for (unsigned int k = 0; k <= 2*b - 2; k += 2)
             {
@@ -1295,7 +1295,7 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
     solid.NumCell0D = ctr0D;  
     solid.NumCell1D = ctr1D;
 
-    for(unsigned int i = 0; i < solid.NumCell2D; ++i)
+    for(unsigned int i = 0; i < solid.NumCell2D; ++i) // Starting from Cell2DFrag we build Cell2DVertices and Cell2DEdges
     {
         for(unsigned int j = 0; j <= 2*b - 2; j+=2)
         {        
@@ -1324,7 +1324,7 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
                     solid.Cell2DNumVertices[ctr2D] = 3;
                     solid.Cell2DNumEdges[ctr2D] = 3;
                     solid.Cell2DVertices[ctr2D].push_back(solid.Cell2D_frag[i](j, k));
-                    solid.Cell2DVertices[ctr2D].push_back(solid.Cell2D_frag[i](j+ 1, k + 2));
+                    solid.Cell2DVertices[ctr2D].push_back(solid.Cell2D_frag[i](j + 1, k + 2));
                     solid.Cell2DVertices[ctr2D].push_back(solid.Cell2D_frag[i](j + 1, k + 1));
                     for(unsigned int h = 0; h < 3; ++h)
                     {
@@ -1730,7 +1730,7 @@ GeodeticSolid dualize(GeodeticSolid& s)
         }
         v.clear();
     }
-
+    
     GeodeticSolid_projection(solid);
     fill_Cell3D(solid);
 
@@ -1875,7 +1875,7 @@ void build_UCD(GeodeticSolid& solid)
         }
     }
 
-    if (!flag)
+    if (!flag) // If user didn't ask for a path we export without calling vertices and edges short paths
     {
         Gedim::UCDUtilities utilities;
         {

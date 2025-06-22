@@ -1,8 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "Utils.hpp"
-#include "UCDUtilities.hpp"
+#include "src/Utils.hpp"
+#include "ExportParaview/UCDUtilities.hpp"
 
 using namespace std;
 using namespace Eigen;
