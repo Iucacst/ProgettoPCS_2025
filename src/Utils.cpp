@@ -1962,7 +1962,7 @@ void main_function(vector<unsigned int>& input)
             shortest_path(input[5], input[6], solid);
             break;
         default:
-            cout << "Input not valid";
+            cout << "Input not valid" << endl;
             flag = false;
             
     }
