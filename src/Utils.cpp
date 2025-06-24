@@ -1022,7 +1022,7 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
     }
 
 
-    for(unsigned int i = 0; i < solid.NumCell1D; ++i)
+    for(unsigned int i = 0; i < solid.NumCell1D; ++i) // Fill external fragmented edges
     {
         for(unsigned int j = 0; j <= 2*b - 1; ++j) 
         {
@@ -1047,7 +1047,7 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
         solid.Cell2D_frag[i](2*b,0) = Q;
         solid.Cell2D_frag[i](2*b, 2*b) = R;
 
-        if(solid.Cell1D_frag(PQ, 0) == P && solid.Cell1D_frag(PQ, 2*b) == Q)
+        if(solid.Cell1D_frag(PQ, 0) == P && solid.Cell1D_frag(PQ, 2*b) == Q) // Fill Cell2D with external fragmented edges
         {
             for (unsigned int j = 1; j < 2*b; ++j)
             {
@@ -1093,7 +1093,7 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
         }
     }
 
-    for (unsigned int i = 0; i < solid.NumCell2D; ++i)
+    for (unsigned int i = 0; i < solid.NumCell2D; ++i) // Move (in the uneven rows) every last entry to its right by 1 
     {
         for (unsigned int j = 1; j <= 2*b - 1; j += 2)
         {
@@ -1117,7 +1117,7 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
             ctr = 12 + 30*(b-1);
         }
 
-        for (unsigned int i = ctr; i < solid_tmp.NumCell0D; ++i)
+        for (unsigned int i = ctr; i < solid_tmp.NumCell0D; ++i) // In case we had internal points in the triangulation 1
         {
             solid.Cell0DId.push_back(ctr0D);
             for (unsigned int j = 0; j < 3; ++j)
@@ -1129,7 +1129,7 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
     }
 
 
-    for (unsigned int i = 0; i < solid.NumCell2D; ++i)
+    for (unsigned int i = 0; i < solid.NumCell2D; ++i) // Displace the vertices of the T1 fragmented faces in a matrix that's twice the size
     {
         for (unsigned int j = 1; j <= b - 1; ++j)
         {
@@ -1279,7 +1279,7 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
             solid.Cell1DExtrema(1, ctr1D) = solid.Cell2D_frag[i](2*b, k);
             ctr1D++;
         }
-        for(unsigned int j = 1; j < 2*b - 1; j += 2) // Triangolazione dei baricentri aggiunta dopo 
+        for(unsigned int j = 1; j < 2*b - 1; j += 2) // Triangolazione dei baricentri aggiunta dopo, need to take two jumps
         {
             for(unsigned int k = 1; k <= j; k += 2)
             {
@@ -1291,10 +1291,10 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
             
         }
     }
-
+    
     solid.NumCell0D = ctr0D;  
     solid.NumCell1D = ctr1D;
-
+    
     for(unsigned int i = 0; i < solid.NumCell2D; ++i) // Starting from Cell2DFrag we build Cell2DVertices and Cell2DEdges
     {
         for(unsigned int j = 0; j <= 2*b - 2; j+=2)
@@ -1490,6 +1490,9 @@ void triangulation_c2(const unsigned int b, unsigned int q, GeodeticSolid& solid
         }          
     }
 
+    solid.Cell0DCoordinates.conservativeResize(3, ctr0D);
+    solid.Cell1DExtrema.conservativeResize(2, ctr1D);
+    
     // Da fare per far funzionare il print del txt e per l'esportazione dei punti
     solid.NumCell2D = ctr2D;
     fill_Cell3D(solid);
