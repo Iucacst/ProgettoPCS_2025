@@ -1919,6 +1919,12 @@ void main_function(vector<unsigned int>& input)
     unsigned int size = input.size();
     bool flag = true;
 
+    if (input[0] != 3 && input[1] != 3)
+    {
+        cout << "Polyhedron not supported" << endl;
+        flag = false;
+    }
+
     switch(size)
     {
         case 5:
